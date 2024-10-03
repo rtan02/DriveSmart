@@ -10,12 +10,15 @@ struct MapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         
+        // Enable traffic overlay
+        mapView.showsTraffic = true
         mapView.isZoomEnabled = true
         mapView.isScrollEnabled = true
         mapView.mapType = .standard
-        mapView.showsUserLocation = true  // Show user's location on the map
+        mapView.showsUserLocation = true  
 
-        addRoutes(to: mapView)
+        addRoutes(to: mapView) //Add Routes to Map
+        addTrafficAnnotations(to: mapView)  // Add Traffic Lights
 
         let region = MKCoordinateRegion(center: coordinates.first ?? CLLocationCoordinate2D(), latitudinalMeters: 5000, longitudinalMeters: 5000)
         mapView.setRegion(region, animated: true)
@@ -51,6 +54,35 @@ struct MapView: UIViewRepresentable {
         }
     }
     
+    private func addTrafficAnnotations(to mapView: MKMapView) {
+        // Hardcoded Annotations
+        let stopSigns = [
+            CLLocationCoordinate2D(latitude: 43.41172587297663, longitude: -79.73182668583425),
+            CLLocationCoordinate2D(latitude: 43.41252410618511, longitude: -79.73163606984338)
+        ]
+        
+        let trafficLights = [
+            CLLocationCoordinate2D(latitude: 43.42181176989304, longitude: -79.72189370556212),
+            CLLocationCoordinate2D(latitude: 43.42893241854303, longitude: -79.73115138899801)
+        ]
+        
+        //Traffic Light Annotations
+        for coordinate in trafficLights {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = "Traffic Light"
+            mapView.addAnnotation(annotation)
+        }
+        
+        //Stop Sign Annotations
+        for coordinate in stopSigns {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = "Stop Sign"
+            mapView.addAnnotation(annotation)
+        }
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -70,6 +102,23 @@ struct MapView: UIViewRepresentable {
                 return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
+        }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if annotation is MKUserLocation {
+                return nil // Use default user location
+            }
+
+            let identifier = "TrafficAnnotation"
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            if annotationView == nil {
+                annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView?.canShowCallout = true
+            } else {
+                annotationView?.annotation = annotation
+            }
+
+            return annotationView
         }
     }
 }

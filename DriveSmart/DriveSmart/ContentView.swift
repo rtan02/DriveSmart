@@ -7,6 +7,8 @@ import CoreLocation
 
 struct ContentView: View {
     @State private var isStarted = false
+    @State private var isOffRoute = false
+    
     @StateObject private var locationManager = LocationManager()
 
     var body: some View {
@@ -26,6 +28,7 @@ struct ContentView: View {
         ZStack {
             MapView(coordinates: coordinates, userLocation: locationManager.currentLocation?.coordinate)
                 .edgesIgnoringSafeArea(.all)
+            
             
             VStack {
                 Spacer()
