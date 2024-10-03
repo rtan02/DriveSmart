@@ -6,7 +6,10 @@ import CoreLocation
 
 
 struct ContentView: View {
+    @State private var isStarted = false
+
     var body: some View {
+        
         let oakvilleLocation = [
             Location(latitude: 43.41172587297663, longitude: -79.73182668583425, name: "Test Center"),
             Location(latitude:43.41252410618511, longitude: -79.73163606984338, name: "Turn Left"),
@@ -23,6 +26,19 @@ struct ContentView: View {
         
         MapView(coordinates: coordinates)
             .edgesIgnoringSafeArea(.all)
-    }
+        
+        Button(action: {
+                        // Start the navigation
+                        isStarted = true
+                    }) {
+                        Text("Start Route")
+                            .font(.headline)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding()
+    }//View
 }
 
