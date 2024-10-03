@@ -4,18 +4,33 @@ import CoreLocation
 
 struct MapView: UIViewRepresentable {
     var coordinates: [CLLocationCoordinate2D]
-    
+    var userLocation: CLLocationCoordinate2D?
+
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         
-        
-        //User Requirements
         mapView.isZoomEnabled = true
         mapView.isScrollEnabled = true
-                
         mapView.mapType = .standard
+        mapView.showsUserLocation = true  // Show user's location on the map
+
+        addRoutes(to: mapView)
+
+        let region = MKCoordinateRegion(center: coordinates.first ?? CLLocationCoordinate2D(), latitudinalMeters: 5000, longitudinalMeters: 5000)
+        mapView.setRegion(region, animated: true)
         
+        return mapView
+    }
+    
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        // Update user location on the map if available
+        if let userLocation = userLocation {
+            uiView.setCenter(userLocation, animated: true)
+        }
+    }
+    
+    private func addRoutes(to mapView: MKMapView) {
         if coordinates.count >= 2 {
             for i in 0..<(coordinates.count - 1) {
                 let sourcePlacemark = MKPlacemark(coordinate: coordinates[i])
@@ -34,15 +49,6 @@ struct MapView: UIViewRepresentable {
                 }
             }
         }
-        
-        let region = MKCoordinateRegion(center: coordinates.first ?? CLLocationCoordinate2D(), latitudinalMeters: 5000, longitudinalMeters: 5000)
-        mapView.setRegion(region, animated: true)
-        
-        return mapView
-    }
-    
-    func updateUIView(_ uiView: MKMapView, context: Context) {
-        
     }
     
     func makeCoordinator() -> Coordinator {
@@ -67,4 +73,3 @@ struct MapView: UIViewRepresentable {
         }
     }
 }
-
