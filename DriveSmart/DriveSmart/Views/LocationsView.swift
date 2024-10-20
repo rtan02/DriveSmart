@@ -2,55 +2,87 @@ import SwiftUI
 
 struct LocationsView: View {
     var body: some View {
+        ZStack {
+            VStack {
+                WaveShape()
+                    .fill(Color.white)
+                    .frame(height: 600)
+                    .edgesIgnoringSafeArea(.top)
+                Spacer()
+            }
+            
             VStack {
                 Spacer()
-                
                 Image("car")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: 200)
                 
+                HStack{
+                    Text("Testing Centers")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                    Spacer()
+                }
+                .padding(.leading, 50)
+                
+                HStack{
+                    Text("Where would you like to test today?")
+                        .font(.title3)
+                        .foregroundColor(.black)
+                        .padding(.bottom, 50)
+                    Spacer()
+                }
+                .padding(.leading, 50)
 
-                Text("Where would you like to test today?")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .padding()
-
-                Spacer()
-
-                // Buttons for location selection
                 VStack(spacing: 20) {
-                    NavigationLink(destination: Text("Oakville Test Screen")) {
-                        LocationButton(title: "Oakville")
+                    
+                    //Oakville
+                    NavigationLink(destination:TestView()){
+                        Text("Oakville")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.black)
+                            .cornerRadius(8)
+                            .shadow(radius: 3)
+                            .padding(.horizontal, 40)
                     }
-                    NavigationLink(destination: Text("Mississauga Test Screen")) {
-                        LocationButton(title: "Mississauga")
+                    
+                    //Mississauga
+                    NavigationLink(destination:TestView()){
+                        Text("Mississauga")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.black)
+                            .cornerRadius(8)
+                            .shadow(radius: 3)
+                            .padding(.horizontal, 40)
                     }
-                    NavigationLink(destination: Text("Brampton Test Screen")) {
-                        LocationButton(title: "Brampton")
+                    
+                    //Brampton
+                    NavigationLink(destination:TestView()){
+                        Text("Brampton")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.black)
+                            .cornerRadius(8)
+                            .shadow(radius: 3)
+                            .padding(.horizontal, 40)
                     }
+                    
+                    
+                    
                 }
                 Spacer()
+            }
         }
-            .background(Color("UIBlue").edgesIgnoringSafeArea(.all))
-            .toolbarBackground(Color("UIBlack"), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-    }
-}
-
-struct LocationButton: View {
-    var title: String
-
-    var body: some View {
-        Text(title)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.white)
-            .foregroundColor(.black)
-            .cornerRadius(8)
-            .shadow(radius: 3)
-            .padding(.horizontal, 40)
+        .background(Color("UIBlue").edgesIgnoringSafeArea(.all))
+        .toolbarBackground(Color("UIBlack"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
