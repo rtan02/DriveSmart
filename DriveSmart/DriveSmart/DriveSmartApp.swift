@@ -11,7 +11,7 @@ import SwiftUI
 struct DriveSmartApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomePageView()
         }
     }
 }
