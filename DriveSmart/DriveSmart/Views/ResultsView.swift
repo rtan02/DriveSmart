@@ -1,11 +1,8 @@
 import SwiftUI
 
 struct ResultsView: View {
-    @State private var checklistItems = [
-        ChecklistItem(name: "Adjust Safety Devices", isChecked: false),
-        ChecklistItem(name: "Parallel Parking", isChecked: false),
-        ChecklistItem(name: "Lane Change", isChecked: true)
-    ]
+    var checklistItems: [ChecklistItem]
+
     
     var body: some View {
         ZStack {
@@ -45,22 +42,22 @@ struct ResultsView: View {
                     
                     // CHECKLIST ITEMS
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("G2 Driving Checklist")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                        
-                        ForEach($checklistItems) { $item in
-                            HStack {
-                                Image(systemName: item.isChecked ? "checkmark.square.fill" : "square")
-                                    .foregroundColor(item.isChecked ? .green : .black)
-                                
-                                Text(item.name)
-                                    .font(.body)
+                                Text("G2 Driving Checklist")
+                                    .font(.headline)
                                     .foregroundColor(.black)
+                                
+                        ForEach(checklistItems) { item in
+                                       HStack {
+                                           Image(systemName: item.isChecked ? "checkmark.square.fill" : "square")
+                                               .foregroundColor(item.isChecked ? .green : .black)
+
+                                           Text(item.name)
+                                               .font(.body)
+                                               .foregroundColor(.black)
+                                       }
+                                   }
                             }
-                        }
-                    }
-                    .padding()
+                            .padding()
                     .background(Color.white)
                     .cornerRadius(10)
                     .shadow(radius: 5)
@@ -104,20 +101,12 @@ struct ResultsView: View {
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
         .background(Color("UIBlue").edgesIgnoringSafeArea(.all))
         .toolbarBackground(Color("UIBlack"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
-struct ChecklistItem: Identifiable {
-    let id = UUID()
-    var name: String
-    var isChecked: Bool
-}
 
-struct ResultsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ResultsView()
-    }
-}
+

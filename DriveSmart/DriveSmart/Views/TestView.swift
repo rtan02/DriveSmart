@@ -5,10 +5,11 @@ struct TestView: View {
     @State private var isStarted = false
     @State private var showRouteSheet = false
     @State private var currentInstruction = "Proceed to the start location."
-    @State private var showResultsView = false // State variable to control navigation to ResultsView
-    
+    @State private var showResultsView = false
     
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var speechRecognizerManager = SpeechRecognizerManager()
+    
     
     var body: some View {
         let oakvilleLocation = [
@@ -52,15 +53,17 @@ struct TestView: View {
         .onAppear {
             if !isStarted {
                 locationManager.startUpdatingLocation()
+                speechRecognizerManager.requestAuthorization()
             }
         }
         .onDisappear {
             locationManager.stopUpdatingLocation()
         }
         .sheet(isPresented: $showRouteSheet) {
-            RouteSheetView(currentInstruction: $currentInstruction, onCancel: {
+            RouteSheetView(currentInstruction: $currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, onCancel: {
                 //When you stop the route and dismiss the sheet, reset everything
                 locationManager.stopUpdatingLocation()
+                speechRecognizerManager.stopRecording()
                 showRouteSheet = false
                 isStarted = false
                 currentInstruction = "Proceed to the start location."
@@ -70,7 +73,7 @@ struct TestView: View {
             .presentationDetents([.medium, .fraction(0.5)])
         }.background(
             //THIS WILL BE CALLED UPON THE SHOWRESULTSVIEW HAS BEEN ACTIVE
-            NavigationLink(destination: ResultsView(), isActive: $showResultsView) {
+            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist), isActive: $showResultsView) {
                 EmptyView()
             }
         )
@@ -79,12 +82,10 @@ struct TestView: View {
     //Logic for driving instructions here...
     //Still need to figure out how to implement this logic. The results page should appear as soon as user is done the route. How to implement this?
     private func updateInstruction() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            currentInstruction = "Turn left at the next intersection."
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            currentInstruction = "You are approaching the destination."
+        do{
+            try speechRecognizerManager.startRecording()
+        }catch{
+            print("Error starting recording: \(error)")
         }
     }
 }
@@ -92,6 +93,7 @@ struct TestView: View {
 //SHEET
 struct RouteSheetView: View {
     @Binding var currentInstruction: String
+    @Binding var recognizedText: String
     var onCancel: () -> Void
     
     var body: some View {
@@ -105,6 +107,14 @@ struct RouteSheetView: View {
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
                 .padding()
+            
+            Spacer()
+            
+            Text(recognizedText)
+                .font(.subheadline)
+                .lineLimit(2)
+                .padding()
+                .cornerRadius(10)
             
             Spacer()
             

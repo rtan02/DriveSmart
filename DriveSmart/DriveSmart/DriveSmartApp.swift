@@ -12,6 +12,7 @@ struct DriveSmartApp: App {
     var body: some Scene {
         WindowGroup {
             HomePageView()
+//            SpeechView()
         }
     }
 }

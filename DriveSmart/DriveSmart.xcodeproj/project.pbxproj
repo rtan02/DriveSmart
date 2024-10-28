@@ -10,9 +10,22 @@
 		45AEBDD52CAF11BA00850497 /* DriveSmart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DriveSmart.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4518B1682CD0057700854487 /* Exceptions for "DriveSmart" folder in "DriveSmart" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 45AEBDD42CAF11BA00850497 /* DriveSmart */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		45AEBDD72CAF11BA00850497 /* DriveSmart */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4518B1682CD0057700854487 /* Exceptions for "DriveSmart" folder in "DriveSmart" target */,
+			);
 			path = DriveSmart;
 			sourceTree = "<group>";
 		};
@@ -254,8 +267,11 @@
 				DEVELOPMENT_ASSET_PATHS = "\"DriveSmart/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DriveSmart/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "App \"DriveSmart\" wants to gain access to your location.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "App \"DriveSmart\" wants to gain access to your location.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "App \"DriveSmart\" wants to gain access to your microphone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "App \"DriveSmart\" wants to gain access to speech recognition.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,8 +300,11 @@
 				DEVELOPMENT_ASSET_PATHS = "\"DriveSmart/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DriveSmart/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "App \"DriveSmart\" wants to gain access to your location.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "App \"DriveSmart\" wants to gain access to your location.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "App \"DriveSmart\" wants to gain access to your microphone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "App \"DriveSmart\" wants to gain access to speech recognition.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
