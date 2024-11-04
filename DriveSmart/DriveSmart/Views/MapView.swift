@@ -5,7 +5,10 @@ import CoreLocation
 struct MapView: UIViewRepresentable {
     var coordinates: [CLLocationCoordinate2D]
     var userLocation: CLLocationCoordinate2D?
-
+    private let speechService = SpeechService()
+    
+    
+    
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
@@ -15,11 +18,11 @@ struct MapView: UIViewRepresentable {
         mapView.isZoomEnabled = true
         mapView.isScrollEnabled = true
         mapView.mapType = .standard
-        mapView.showsUserLocation = true  
-
+        mapView.showsUserLocation = true
+        
         addRoutes(to: mapView) //Add Routes to Map
         addTrafficAnnotations(to: mapView)  // Add Traffic Lights
-
+        
         let region = MKCoordinateRegion(center: coordinates.first ?? CLLocationCoordinate2D(), latitudinalMeters: 5000, longitudinalMeters: 5000)
         mapView.setRegion(region, animated: true)
         
@@ -54,6 +57,7 @@ struct MapView: UIViewRepresentable {
         }
     }
     
+    //MARK: These will be loaded from the cloud
     private func addTrafficAnnotations(to mapView: MKMapView) {
         // Hardcoded Annotations
         let stopSigns = [
@@ -82,7 +86,7 @@ struct MapView: UIViewRepresentable {
             mapView.addAnnotation(annotation)
         }
     }
-
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -108,7 +112,7 @@ struct MapView: UIViewRepresentable {
             if annotation is MKUserLocation {
                 return nil // Use default user location
             }
-
+            
             let identifier = "TrafficAnnotation"
             var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
             if annotationView == nil {
@@ -117,7 +121,7 @@ struct MapView: UIViewRepresentable {
             } else {
                 annotationView?.annotation = annotation
             }
-
+            
             return annotationView
         }
     }
