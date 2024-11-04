@@ -7,19 +7,19 @@ struct TestView: View {
     @State private var showRouteSheet = false
     @State private var showResultsView = false
     @State private var showProximityAlert = false
+    @State private var showRouteAlert = false
+    
     
     //Logic States
     @State private var isStarted = false
     @State private var isStartLocationProximity = false
+    @State private var isNotInRoute = false
     @State private var isNearStopSign = false
     @State private var isNearTrafficLight = false
-
-    
     
     //For Instructions
     @State private var instructionIndex = 0
     @State private var currentInstruction = "Proceed to the start location."
-    
     
     // Initializers
     @StateObject private var locationManager = LocationManager()
@@ -27,7 +27,6 @@ struct TestView: View {
     private let speechService = SpeechService()
     
     //MARK: These need to be loaded from the Cloud
-    
     //Traffic And Stop Signs
     let stopSigns = [
         CLLocation(latitude: 43.41172587297663, longitude: -79.73182668583425),
@@ -51,7 +50,6 @@ struct TestView: View {
         Location(latitude: 43.42884766429311, longitude: -79.73127332105396, name: "Third Line"),
         Location(latitude: 43.41172587297663, longitude: -79.73182668583425, name: "Test Center")
     ]
-    
     
     var body: some View {
         
@@ -102,16 +100,17 @@ struct TestView: View {
         .onReceive(locationManager.$currentLocation) { newLocation in
             checkProximity(to: newLocation, locations: oakvilleLocation)
             checkStopProximity(to: newLocation, stopSigns: stopSigns, trafficLights: trafficLights)
+            checkRouteProximity(to: newLocation, locations: oakvilleLocation)
         }//OnReceive
         .alert(isPresented: $showProximityAlert) {  // Alert for proximity
             Alert(
-                title: Text("Not Near Test Site"),
-                message: Text("Please go to the start of the test route."),
+                title: Text("Not Near Route"),
+                message: Text("Please approach the starting location."),
                 dismissButton: .default(Text("OK"))
             )
-        }//Alert
+        }//Proximity Alert
         .sheet(isPresented: $showRouteSheet) {
-            RouteSheetView(currentInstruction: $currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, onCancel: {
+            RouteSheetView(currentInstruction: $currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $showRouteAlert, isNotInRoute: $isNotInRoute, onCancel: {
                 //When you stop the route and dismiss the sheet, reset everything
                 locationManager.stopUpdatingLocation()
                 speechRecognizerManager.stopRecording()
@@ -141,7 +140,7 @@ struct TestView: View {
         }
     }//UpdateInstruction
     
-    // Check proximity from currentLocation
+    //MARK: Check proximity from currentLocation
     private func checkProximity(to currentLocation: CLLocation?, locations: [Location]) {
         
         guard let currentLocation = currentLocation else { return }
@@ -158,7 +157,7 @@ struct TestView: View {
         
         //The <1000 is indicative of meters
         //MARK: This is to find the distance from the startingLocation to currentLocation AKA If they're on the route
-        if currentLocation.distance(from: startingLocation) < 1000{
+        if currentLocation.distance(from: startingLocation) < 100{
             print("\n Current Location within 1000, setting to true \n")
             isStartLocationProximity = true
         }else{
@@ -167,53 +166,85 @@ struct TestView: View {
         }//if-else
     }//CheckProximity Function
     
+    //MARK: Check STOP proximity from currentLocation
     private func checkStopProximity(to currentLocation: CLLocation?, stopSigns: [CLLocation], trafficLights: [CLLocation]){
         
         isNearTrafficLight = false
         isNearStopSign = false
-
-
+        
+        
         guard let currentLocation = currentLocation else { return }
         
-//        print("\n Current Location From Stop/Traffic Light: \(currentLocation.coordinate.latitude), \(currentLocation.coordinate.longitude) \n")
-
+        //        print("\n Current Location From Stop/Traffic Light: \(currentLocation.coordinate.latitude), \(currentLocation.coordinate.longitude) \n")
+        
         
         for stopSign in stopSigns {
             
-                if currentLocation.distance(from: stopSign) < 20 {
-                    isNearStopSign = true
-                    let distanceToStopSign = currentLocation.distance(from: stopSign)
-
-                    print("\n Distance to Stop Sign: \(distanceToStopSign) meters \n")
-                    print("\n User is near stop sign \n")
-                    //MARK: Voice activation must be done to notify the user they are approaching a stop sign
-                    
-                    break
-                }
+            if currentLocation.distance(from: stopSign) < 20 {
+                isNearStopSign = true
+                let distanceToStopSign = currentLocation.distance(from: stopSign)
+                
+                print("\n Distance to Stop Sign: \(distanceToStopSign) meters \n")
+                print("\n User is near stop sign \n")
+                //MARK: Voice activation must be done to notify the user they are approaching a stop sign
+                
+                break
             }
-
-            // Check proximity to traffic lights
-            for trafficLight in trafficLights {
-                if currentLocation.distance(from: trafficLight) < 20 {
-                    isNearTrafficLight = true
-                    let distanceToTrafficLight = currentLocation.distance(from: trafficLight)
-
-                    print("\n Distance to Traffic Light: \(distanceToTrafficLight) meters \n")
-                    print("\n User is near traffic light \n")
-                    //MARK: Voice activation must be done to notify the user they are approaching a stop sign
-                    
-                    break
-                }
-            }
+        }
         
-    }
+        // Check proximity to traffic lights
+        for trafficLight in trafficLights {
+            if currentLocation.distance(from: trafficLight) < 20 {
+                isNearTrafficLight = true
+                let distanceToTrafficLight = currentLocation.distance(from: trafficLight)
+                
+                print("\n Distance to Traffic Light: \(distanceToTrafficLight) meters \n")
+                print("\n User is near traffic light \n")
+                //MARK: Voice activation must be done to notify the user they are approaching a stop sign
+                
+                break
+            }
+        }
+    }//CheckStopProximity Function
     
-}
+    private func checkRouteProximity(to currentLocation: CLLocation?, locations: [Location]) {
+        
+        guard let currentLocation = currentLocation else { return }
+        
+        isNotInRoute = false
+        
+        //essentially a huge number that’s guaranteed to be larger than any typical distance in this context
+        var closestDistance = Double.greatestFiniteMagnitude
+        
+        // This is finding the closest point from the user location
+        for location in locations {
+            let routePoint = CLLocation(latitude: location.latitude, longitude: location.longitude)
+            let distance = currentLocation.distance(from: routePoint)
+            
+            // Update closestDistance if this point is closer
+            if distance < closestDistance {
+                closestDistance = distance
+            }
+        }
+        
+        // If that user is further than 50 m from that route, than IsInRoute will be false, if they are within the route, they will continue
+        if closestDistance > 100 {  // Adjust threshold as needed
+            //MARK: Fix the logic behind this, there needs to be a counter for how long they will remain out of route to notify the user
+//            isNotInRoute = true
+//            showRouteAlert = true
+            print("You are off the route. Please return to the designated path.")
+        }
+    }//CheckRouteProximity
+    
+    
+}//TESTVIEW
 
 //SHEET WILL APPEAR WHEN USER CLICKS THE BUTTON
 struct RouteSheetView: View {
     @Binding var currentInstruction: String
     @Binding var recognizedText: String
+    @Binding var showRouteAlert: Bool
+    @Binding var isNotInRoute: Bool
     var onCancel: () -> Void
     
     var body: some View {
@@ -251,6 +282,18 @@ struct RouteSheetView: View {
             .padding()
         }
         .padding()
+        .alert(isPresented: $showRouteAlert) {
+            Alert(
+                title: Text("Off Route"),
+                message: Text("You are off the designated route. Please return to the path."),
+                dismissButton: .default(Text("OK")) {
+                    // Dismiss button is temporarily inactive until user returns to the route
+                    if isNotInRoute {
+                        showRouteAlert = true
+                    }
+                }
+            )
+        }//RouteAlert
     }
 }
 
