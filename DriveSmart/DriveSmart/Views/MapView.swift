@@ -8,7 +8,8 @@ struct MapView: UIViewRepresentable {
     var coordinates: [CLLocationCoordinate2D]
     var userLocation: CLLocationCoordinate2D?
     
-    
+    @ObservedObject var firebaseManager: FirebaseManager
+
     
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -22,7 +23,8 @@ struct MapView: UIViewRepresentable {
         mapView.showsUserLocation = true
         
         addRoutes(to: mapView) //Add Routes to Map
-        addTrafficAnnotations(to: mapView)  // Add Traffic Lights
+        addFirebaseAnnotations(to: mapView)
+//        addTrafficAnnotations(to: mapView)  // Add Traffic Lights
         
         let region = MKCoordinateRegion(center: coordinates.first ?? CLLocationCoordinate2D(), latitudinalMeters: 5000, longitudinalMeters: 5000)
         mapView.setRegion(region, animated: true)
@@ -31,10 +33,18 @@ struct MapView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: MKMapView, context: Context) {
-        // Update user location on the map if available
+        
         if let userLocation = userLocation {
-            uiView.setCenter(userLocation, animated: true)
-        }
+                   uiView.setCenter(userLocation, animated: true)
+               }
+               
+               // Clear existing annotations before adding updated ones
+               uiView.removeAnnotations(uiView.annotations)
+               addFirebaseAnnotations(to: uiView)
+//        // Update user location on the map if available
+//        if let userLocation = userLocation {
+//            uiView.setCenter(userLocation, animated: true)
+//        }
     }
     
     private func addRoutes(to mapView: MKMapView) {
@@ -50,6 +60,10 @@ struct MapView: UIViewRepresentable {
                 
                 let directions = MKDirections(request: request)
                 directions.calculate { response, error in
+                    if let error = error {
+                        print("Error calculating directions:", error.localizedDescription)
+                        return
+                    }
                     if let route = response?.routes.first {
                         mapView.addOverlay(route.polyline)
                     }
@@ -57,36 +71,55 @@ struct MapView: UIViewRepresentable {
             }
         }
     }
+
     
     //MARK: These will be loaded from the cloud
-    private func addTrafficAnnotations(to mapView: MKMapView) {
-        // Hardcoded Annotations
-        let stopSigns = [
-            CLLocationCoordinate2D(latitude: 43.41172587297663, longitude: -79.73182668583425),
-            CLLocationCoordinate2D(latitude: 43.41252410618511, longitude: -79.73163606984338)
-        ]
-        
-        let trafficLights = [
-            CLLocationCoordinate2D(latitude: 43.42181176989304, longitude: -79.72189370556212),
-            CLLocationCoordinate2D(latitude: 43.42893241854303, longitude: -79.73115138899801)
-        ]
-        
-        //Traffic Light Annotations
-        for coordinate in trafficLights {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = coordinate
-            annotation.title = "Traffic Light"
-            mapView.addAnnotation(annotation)
+//    private func addTrafficAnnotations(to mapView: MKMapView) {
+//        // Hardcoded Annotations
+//        let stopSigns = [
+//            CLLocationCoordinate2D(latitude: 43.41172587297663, longitude: -79.73182668583425),
+//            CLLocationCoordinate2D(latitude: 43.41252410618511, longitude: -79.73163606984338)
+//        ]
+//        
+//        let trafficLights = [
+//            CLLocationCoordinate2D(latitude: 43.42181176989304, longitude: -79.72189370556212),
+//            CLLocationCoordinate2D(latitude: 43.42893241854303, longitude: -79.73115138899801)
+//        ]
+//        
+//        //Traffic Light Annotations
+//        for coordinate in trafficLights {
+//            let annotation = MKPointAnnotation()
+//            annotation.coordinate = coordinate
+//            annotation.title = "Traffic Light"
+//            mapView.addAnnotation(annotation)
+//        }
+//        
+//        //Stop Sign Annotations
+//        for coordinate in stopSigns {
+//            let annotation = MKPointAnnotation()
+//            annotation.coordinate = coordinate
+//            annotation.title = "Stop Sign"
+//            mapView.addAnnotation(annotation)
+//        }
+//    }
+    
+    private func addFirebaseAnnotations(to mapView: MKMapView) {
+            // Traffic Lights Annotations
+            for coordinate in firebaseManager.trafficLights {
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = coordinate
+                annotation.title = "Traffic Light"
+                mapView.addAnnotation(annotation)
+            }
+            
+            // Stop Signs Annotations
+            for coordinate in firebaseManager.stopSigns {
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = coordinate
+                annotation.title = "Stop Sign"
+                mapView.addAnnotation(annotation)
+            }
         }
-        
-        //Stop Sign Annotations
-        for coordinate in stopSigns {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = coordinate
-            annotation.title = "Stop Sign"
-            mapView.addAnnotation(annotation)
-        }
-    }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)

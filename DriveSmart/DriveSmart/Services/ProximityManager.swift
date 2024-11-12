@@ -1,4 +1,5 @@
 //Created by: Melissa Munoz
+
 import Foundation
 import CoreLocation
 
@@ -8,8 +9,8 @@ class ProximityManager: ObservableObject {
     @Published var isNearStopSign = false
     @Published var isNearTrafficLight = false
     
-    private let stopSigns: [CLLocation]
-    private let trafficLights: [CLLocation]
+    var stopSigns: [CLLocation]
+    var trafficLights: [CLLocation]
     
     init(stopSigns: [CLLocation], trafficLights: [CLLocation]) {
         self.stopSigns = stopSigns
@@ -18,12 +19,16 @@ class ProximityManager: ObservableObject {
     
     //MARK: Check proximity from currentLocation
     func checkStartProximity(to currentLocation: CLLocation?, locations: [Location], instructionIndex: Int) {
+        
         guard let currentLocation = currentLocation else { return }
         
         let startingLocation = CLLocation(latitude: locations.first?.latitude ?? 0, longitude: locations.first?.longitude ?? 0)
-        let targetLocation = CLLocation(latitude: locations[instructionIndex].latitude, longitude: locations[instructionIndex].longitude)
         
-        if currentLocation.distance(from: startingLocation) < 100 {
+        print("Start location: \(locations.first?.latitude ?? 0), \(locations.first?.longitude ?? 0)\n")
+        print("User's current location: \(currentLocation.coordinate.latitude), \(currentLocation.coordinate.longitude)\n")
+
+        
+        if currentLocation.distance(from: startingLocation) < 1000 {
             self.isStartLocationProximity = true
             print("User is within start location proximity")
         } else {

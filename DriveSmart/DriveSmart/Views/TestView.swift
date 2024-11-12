@@ -13,9 +13,16 @@ struct TestView: View {
     
     // Logic States
     @State private var isStarted = false
+    @State private var isDataLoaded = false
+    
     
     // For Instructions
     @State private var instructionIndex = 0
+    
+    // For Firebase
+    @StateObject private var firebaseManager = FirebaseManager()
+    @State private var locationData: LocationData? = nil
+    var locationName: String // To determine what location they want
     
     // Initializers
     @StateObject private var locationManager = LocationManager()
@@ -23,44 +30,39 @@ struct TestView: View {
     @StateObject private var instructionManager = InstructionManager(speechManager: SpeechManager())
     @StateObject private var proximityManager: ProximityManager
     
-    init() {
-        let stopSigns = [
-            CLLocation(latitude: 43.41172587297663, longitude: -79.73182668583425),
-            CLLocation(latitude: 43.41252410618511, longitude: -79.73163606984338)
-        ]
-        let trafficLights = [
-            CLLocation(latitude: 43.42181176989304, longitude: -79.72189370556212),
-            CLLocation(latitude: 43.42893241854303, longitude: -79.73115138899801)
-        ]
-        _proximityManager = StateObject(wrappedValue: ProximityManager(stopSigns: stopSigns, trafficLights: trafficLights))
+    init(locationName: String) {
+        self.locationName = locationName
+        _proximityManager = StateObject(wrappedValue: ProximityManager(stopSigns: [], trafficLights: [])) // Default empty
     }
-
-    // Locations
-    private let oakvilleLocation = [
-        Location(latitude: 43.41172587297663, longitude: -79.73182668583425, name: "Test Center"),
-        Location(latitude: 43.41252410618511, longitude: -79.73163606984338, name: "Turn Left"),
-        Location(latitude: 43.42181176989304, longitude: -79.72189370556212, name: "Third Line"),
-        Location(latitude: 43.42893241854303, longitude: -79.73115138899801, name: "Kings College Dr"),
-        Location(latitude: 43.430518018291274, longitude: -79.73560051162885, name: "Grainer Court"),
-        Location(latitude: 43.431278749509225, longitude: -79.73653623982118, name: "Blacksmith Ln"),
-        Location(latitude: 43.42978292062415, longitude: -79.73688934480235, name: "King's College Dr"),
-        Location(latitude: 43.42884766429311, longitude: -79.73127332105396, name: "Third Line"),
-        Location(latitude: 43.41172587297663, longitude: -79.73182668583425, name: "Test Center")
-    ]
     
     var body: some View {
         
-        let coordinates = oakvilleLocation.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        var coordinates: [CLLocationCoordinate2D] {
+            let coords = locationData?.locations.map {
+                CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+            } ?? []
+            return coords
+        }
+        
         
         ZStack {
-            MapView(coordinates: coordinates, userLocation: locationManager.currentLocation?.coordinate)
-                .edgesIgnoringSafeArea(.all)
-                .id("MapView") // Static view
-            
+            if isDataLoaded {
+                MapView(coordinates: coordinates, userLocation: locationManager.currentLocation?.coordinate, firebaseManager: firebaseManager)
+                    .onAppear {
+                        firebaseManager.fetchAnnotations(for: locationName)
+                    }
+                    .edgesIgnoringSafeArea(.all)
+                    .id("MapView") // Static view
+            }else{
+                Text("Loading Data...")
+                    .font(.headline)
+                    .foregroundColor(.gray)
+            }
             VStack {
                 Spacer()
                 Button(action: {
-                    
+                    print("isStartLocationProximity: \(proximityManager.isStartLocationProximity)")
+                    print("isStarted: \(isStarted)")
                     // Must be within the starting location
                     if proximityManager.isStartLocationProximity {
                         isStarted = true
@@ -69,7 +71,6 @@ struct TestView: View {
                     } else {
                         showProximityAlert = true
                     }
-                    
                 }) {
                     Text("Start Route")
                         .font(.headline)
@@ -84,23 +85,40 @@ struct TestView: View {
         .toolbarBackground(Color("UIBlack"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
-            if !isStarted {
-                locationManager.startUpdatingLocation()
-                speechRecognizerManager.requestAuthorization()
+            // Fetch location data from Firebase
+            firebaseManager.fetchLocationData(for: locationName) { fetchedData in
+                if let data = fetchedData {
+                    locationData = data
+                    
+                    // Pass the stop signs and traffic lights to proximity manager
+                    proximityManager.stopSigns = data.stopSigns
+                    proximityManager.trafficLights = data.trafficLights
+                    isDataLoaded = true
+                }
+                
+                if !isStarted {
+                    locationManager.startUpdatingLocation()
+                    speechRecognizerManager.requestAuthorization()
+                }
             }
         }
         .onDisappear {
             locationManager.stopUpdatingLocation()
         }
         .onReceive(locationManager.$currentLocation) { newLocation in
-            // ALWAYS check if user is near the start proximity when isStarted is FALSE
-            proximityManager.checkStartProximity(to: newLocation, locations: oakvilleLocation, instructionIndex: instructionIndex)
             
-            // Only check proximities if the user STARTS the application
+            print("Received new location: \(newLocation?.coordinate.latitude ?? 0), \(newLocation?.coordinate.longitude ?? 0)")  // Add this line
+
+            guard let locationData = locationData else { return }
+             
+            // Check proximity to start location
+            proximityManager.checkStartProximity(to: newLocation, locations: locationData.locations, instructionIndex: instructionIndex)
+            
             if isStarted {
+                // Only check proximities if the route is started
                 proximityManager.checkStopProximity(to: newLocation)
-                proximityManager.checkRouteProximity(to: newLocation, locations: oakvilleLocation)
-                proximityManager.checkInstructionProximity(to: newLocation, locations: oakvilleLocation, instructionManager: instructionManager)
+                proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)
+                proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
             }
         }
         .alert(isPresented: $showProximityAlert) {  // Alert for proximity
@@ -128,8 +146,6 @@ struct TestView: View {
         )
     }
 }
-
-
 
 //SHEET WILL APPEAR WHEN USER CLICKS THE BUTTON, IT CANNOT BE DISMISSED UNTIL USER HAS CLICKED CANCEL ROUTE
 struct RouteSheetView: View {

@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct LocationsView: View {
+    
+    @StateObject var firebaseManager = FirebaseManager()
+
+    
     var body: some View {
         ZStack {
             VStack {
@@ -39,7 +43,7 @@ struct LocationsView: View {
                 VStack(spacing: 20) {
                     
                     //Oakville
-                    NavigationLink(destination:TestView()){
+                    NavigationLink(destination:TestView(locationName: "Oakville")){
                         Text("Oakville")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -51,7 +55,7 @@ struct LocationsView: View {
                     }
                     
                     //Mississauga
-                    NavigationLink(destination:TestView()){
+                    NavigationLink(destination:TestView(locationName: "Mississauga")){
                         Text("Mississauga")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -63,7 +67,7 @@ struct LocationsView: View {
                     }
                     
                     //Brampton
-                    NavigationLink(destination:TestView()){
+                    NavigationLink(destination:TestView(locationName: "Brampton")){
                         Text("Brampton")
                             .frame(maxWidth: .infinity)
                             .padding()
