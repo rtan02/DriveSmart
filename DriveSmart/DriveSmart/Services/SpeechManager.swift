@@ -1,19 +1,27 @@
-//
-//  SpeechManager.swift
-//  DriveSmart
-//
-//  Created by Eli Munoz on 2024-10-29.
-//
-
-import Foundation
 import AVFoundation
+import SwiftUI
 
-class SpeechService {
-    private let speechSynthesizer = AVSpeechSynthesizer()
+class SpeechManager: ObservableObject {
+    private var synthesizer = AVSpeechSynthesizer()
     
-    func speak(instruction: String, language: String = "en-US") {
+    func speak(_ instruction: String) {
+        
+        // Stop speaking if already in progress
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+        
         let utterance = AVSpeechUtterance(string: instruction)
-        utterance.voice = AVSpeechSynthesisVoice(language: language)
-        speechSynthesizer.speak(utterance)
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.5  
+        
+        synthesizer.speak(utterance)
+    }
+    
+    // This function stops the speech if needed
+    func stopSpeaking() {
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+        }
     }
 }

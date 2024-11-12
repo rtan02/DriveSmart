@@ -24,7 +24,8 @@ struct TestView: View {
     // Initializers
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechRecognizerManager = SpeechRecognizerManager()
-    private let speechService = SpeechService()
+    @StateObject private var instructionManager = InstructionManager(speechManager: SpeechManager())
+
     
     //MARK: These need to be loaded from the Cloud
     //Traffic And Stop Signs
@@ -59,6 +60,7 @@ struct TestView: View {
         ZStack {
             MapView(coordinates: coordinates, userLocation: locationManager.currentLocation?.coordinate)
                 .edgesIgnoringSafeArea(.all)
+                .id("MapView") //Static view
             
             VStack {
                 Spacer()
@@ -69,7 +71,6 @@ struct TestView: View {
                         isStarted = true
                         showRouteSheet = true
                         locationManager.startUpdatingLocation()
-                        updateInstruction()
                     }else{
                         showProximityAlert = true
                     }//If-Else Block
@@ -98,9 +99,14 @@ struct TestView: View {
             locationManager.stopUpdatingLocation()
         }//OnDisappear
         .onReceive(locationManager.$currentLocation) { newLocation in
-            checkProximity(to: newLocation, locations: oakvilleLocation)
-            checkStopProximity(to: newLocation, stopSigns: stopSigns, trafficLights: trafficLights)
-            checkRouteProximity(to: newLocation, locations: oakvilleLocation)
+            checkStartProximity(to: newLocation, locations: oakvilleLocation)
+            
+            //Only does these things if the user clicks the button
+            if isStarted{
+                checkStopProximity(to: newLocation, stopSigns: stopSigns, trafficLights: trafficLights)
+                checkRouteProximity(to: newLocation, locations: oakvilleLocation)
+                checkInstructionProximity(to: newLocation, locations: oakvilleLocation)
+            }
         }//OnReceive
         .alert(isPresented: $showProximityAlert) {  // Alert for proximity
             Alert(
@@ -110,7 +116,7 @@ struct TestView: View {
             )
         }//Proximity Alert
         .sheet(isPresented: $showRouteSheet) {
-            RouteSheetView(currentInstruction: $currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $showRouteAlert, isNotInRoute: $isNotInRoute, onCancel: {
+            RouteSheetView(currentInstruction: $instructionManager.currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $showRouteAlert, isNotInRoute: $isNotInRoute, onCancel: {
                 //When you stop the route and dismiss the sheet, reset everything
                 locationManager.stopUpdatingLocation()
                 speechRecognizerManager.stopRecording()
@@ -121,6 +127,7 @@ struct TestView: View {
                 
             })
             .presentationDetents([.medium, .fraction(0.5)])
+            .interactiveDismissDisabled()
         }//Sheet
         .background(
             //This will only be called if ShowResultsView == True
@@ -131,17 +138,8 @@ struct TestView: View {
         )
     }
     
-    //ThisWillStartListening and GivingInstructions
-    private func updateInstruction() {
-        do{
-            try speechRecognizerManager.startRecording()
-        }catch{
-            print("Error starting recording: \(error)")
-        }
-    }//UpdateInstruction
-    
     //MARK: Check proximity from currentLocation
-    private func checkProximity(to currentLocation: CLLocation?, locations: [Location]) {
+    private func checkStartProximity(to currentLocation: CLLocation?, locations: [Location]) {
         
         guard let currentLocation = currentLocation else { return }
         
@@ -164,9 +162,40 @@ struct TestView: View {
             print("\n Current Location not within 1000, setting to false \n")
             isStartLocationProximity = false
         }//if-else
-    }//CheckProximity Function
+    }//CheckStartProximity Function
     
-    //MARK: Check STOP proximity from currentLocation
+    //MARK: Gives instructions based on the proximity from the point
+    private func checkInstructionProximity(to currentLocation: CLLocation?, locations: [Location]) {
+        guard let currentLocation = currentLocation else { return }
+        
+        // Determine the closest instruction point
+        var closestIndex = instructionManager.instructionIndex
+        var closestDistance = Double.greatestFiniteMagnitude
+        
+        for (index, location) in locations.enumerated() {
+            let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+            let distance = currentLocation.distance(from: targetLocation)
+            
+            if distance < closestDistance {
+                closestDistance = distance
+                closestIndex = index
+            }
+        }
+        
+        // Update the instruction index if the closest point is different
+        if closestIndex != instructionManager.instructionIndex {
+            instructionManager.instructionIndex = closestIndex
+            instructionManager.currentInstruction = instructionManager.instructions[closestIndex]
+        }
+        
+        // Optional: Only give verbal instruction if the user has reached a new instruction point
+        if closestDistance < 20 {
+            instructionManager.updateInstruction()  // Move to next instruction if close enough
+        }
+    }
+
+    
+    //MARK: Check STOP and TRAFFIC LIGHT proximity from currentLocation
     private func checkStopProximity(to currentLocation: CLLocation?, stopSigns: [CLLocation], trafficLights: [CLLocation]){
         
         isNearTrafficLight = false
@@ -228,6 +257,7 @@ struct TestView: View {
         }
         
         // If that user is further than 50 m from that route, than IsInRoute will be false, if they are within the route, they will continue
+        
         if closestDistance > 100 {  // Adjust threshold as needed
             //MARK: Fix the logic behind this, there needs to be a counter for how long they will remain out of route to notify the user
 //            isNotInRoute = true

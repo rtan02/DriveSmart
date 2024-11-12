@@ -20,6 +20,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.locationManager.delegate = self
         self.locationManager.distanceFilter = kCLDistanceFilterNone
         self.locationManager.requestWhenInUseAuthorization()
+        self.locationManager.distanceFilter = 10 // Only updates if the user moves 10 meters
     }
     
     func startUpdatingLocation() {

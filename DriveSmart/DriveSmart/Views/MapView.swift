@@ -5,7 +5,6 @@ import CoreLocation
 struct MapView: UIViewRepresentable {
     var coordinates: [CLLocationCoordinate2D]
     var userLocation: CLLocationCoordinate2D?
-    private let speechService = SpeechService()
     
     
     
