@@ -1,6 +1,4 @@
-import Foundation
-import CoreLocation
-import MapKit
+//Created by: Melissa Munoz
 
 import Foundation
 import CoreLocation

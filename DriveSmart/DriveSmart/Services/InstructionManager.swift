@@ -1,3 +1,5 @@
+//Created by: Melissa Munoz
+
 import CoreLocation
 
 class InstructionManager: ObservableObject {
@@ -11,7 +13,7 @@ class InstructionManager: ObservableObject {
        }
     
     var instructions = [
-        "Start at the Test Center.",
+        "Check your seatbelt, mirror and seats",
         "Turn left at the next intersection.",
         "Continue on Third Line.",
         "Make a right at Kings College Dr.",
