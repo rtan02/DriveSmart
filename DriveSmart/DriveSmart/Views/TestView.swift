@@ -48,9 +48,6 @@ struct TestView: View {
         ZStack {
             if isDataLoaded {
                 MapView(coordinates: coordinates, userLocation: locationManager.currentLocation?.coordinate, firebaseManager: firebaseManager)
-                    .onAppear {
-                        firebaseManager.fetchAnnotations(for: locationName)
-                    }
                     .edgesIgnoringSafeArea(.all)
                     .id("MapView") // Static view
             }else{
@@ -93,6 +90,10 @@ struct TestView: View {
                     // Pass the stop signs and traffic lights to proximity manager
                     proximityManager.stopSigns = data.stopSigns
                     proximityManager.trafficLights = data.trafficLights
+                    
+                    // Pass the instruction manager
+                    proximityManager.instructions = data.instructions
+
                     isDataLoaded = true
                 }
                 
