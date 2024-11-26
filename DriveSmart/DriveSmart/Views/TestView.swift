@@ -1,4 +1,3 @@
-//Created by: Melissa Munoz
 
 import SwiftUI
 import CoreLocation
@@ -15,9 +14,6 @@ struct TestView: View {
     @State private var isStarted = false
     @State private var isDataLoaded = false
     
-    
-    // For Instructions
-    @State private var instructionIndex = 0
     
     // For Firebase
     @StateObject private var firebaseManager = FirebaseManager()
@@ -91,11 +87,6 @@ struct TestView: View {
                     proximityManager.stopSigns = data.stopSigns
                     proximityManager.trafficLights = data.trafficLights
                     
-                    // Pass the instruction manager
-                    proximityManager.instructions = data.instructions
-                    
-                    instructionManager.setInstructions(data.instructions)
-
                     isDataLoaded = true
                 }
                 
@@ -116,7 +107,7 @@ struct TestView: View {
             guard let locationData = locationData else { return }
              
             // Check proximity to start location
-            proximityManager.checkStartProximity(to: newLocation, locations: locationData.locations, instructionIndex: instructionIndex)
+            proximityManager.checkStartProximity(to: newLocation, locations: locationData.locations)
             
             if isStarted {
                 
@@ -124,6 +115,7 @@ struct TestView: View {
                 proximityManager.checkStopProximity(to: newLocation)
                 proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)
                 proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
+//                proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
             }
         }
         .alert(isPresented: $isShowingProximityAlert) {  // Alert for proximity

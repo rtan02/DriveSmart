@@ -1,4 +1,3 @@
-//Created by: Melissa Munoz
 
 import FirebaseFirestore
 import CoreLocation
@@ -33,12 +32,9 @@ class FirebaseManager: ObservableObject {
                            let locations = locationsData.map { dict -> Location in
                                let latitude = dict["latitude"] as? Double ?? 0
                                let longitude = dict["longitude"] as? Double ?? 0
-                               let name = dict["name"] as? String ?? ""
-                               return Location(latitude: latitude, longitude: longitude, name: name)
+                               let instruction = dict["instruction"] as? String ?? ""
+                               return Location(latitude: latitude, longitude: longitude, instruction: instruction)
                            }
-                
-                // Extract instructions
-                let instructions = data?["instructions"] as? [String] ?? []
                 
                 // Extract traffic lights
                 let trafficLightsData = data?["trafficLights"] as? [[String: Double]] ?? []
@@ -56,7 +52,6 @@ class FirebaseManager: ObservableObject {
                 let locationData = LocationData(
                     name: locationName,
                     locations: locations,
-                    instructions: instructions,
                     trafficLights: trafficLights,
                     stopSigns: stopSigns
                 )
