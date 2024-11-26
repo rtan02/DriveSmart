@@ -1,4 +1,3 @@
-//Created by: Melissa Munoz
 
 import Foundation
 import CoreLocation
@@ -71,39 +70,40 @@ class ProximityManager: ObservableObject {
         }
     }
     
-//    //MARK: Check Instruction Proximity
-//        func checkInstructionProximity(to currentLocation: CLLocation?, locations: [Location], instructionManager: InstructionManager) {
-//            guard let currentLocation = currentLocation else { return }
+//    func checkInstructionProximity(
+//        to currentLocation: CLLocation?,
+//        locations: [Location],
+//        instructionManager: InstructionManager
+//    ) {
+//        guard let currentLocation = currentLocation else { return }
+//        
+//        // Get the target location for the current instruction
+//        let targetLocation = CLLocation(
+//            latitude: locations[instructionManager.instructionIndex].latitude,
+//            longitude: locations[instructionManager.instructionIndex].longitude
+//        )
+//        
+//        // Calculate distance to the current instruction's target location
+//        let distanceToTarget = currentLocation.distance(from: targetLocation)
+//        print("Distance to instruction \(instructionManager.instructionIndex): \(distanceToTarget) meters")
+//        
+//        // If the user is close enough to the target, update the instruction
+//        if distanceToTarget < 20 { // Adjust threshold as necessary
+//            print("User is close to instruction \(instructionManager.instructionIndex)")
 //            
-//            var closestIndex = instructionManager.instructionIndex
-//            var closestDistance = Double.greatestFiniteMagnitude
+//            instructionManager.advanceToNextInstruction()
 //            
-//            for (index, location) in locations.enumerated() {
-//                let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-//                let distance = currentLocation.distance(from: targetLocation)
-//                
-//                print("Checking instruction \(index) at distance: \(distance) meters")
-//                
-//                if distance < closestDistance {
-//                    closestDistance = distance
-//                    closestIndex = index
-//                }
-//            }
-//            
-//            if closestIndex != instructionManager.instructionIndex {
-//                instructionManager.instructionIndex = closestIndex
-//                instructionManager.currentInstruction = instructionManager.instructions[closestIndex]
-//                print("Moved to next instruction: \(instructionManager.currentInstruction)")
-//            }
-//            
-//            if closestDistance < 20 {
-//                instructionManager.updateInstruction()  // Move to next instruction
-//                print("User is close enough to the instruction, moving to the next one.")
-//                
-//                // Fetch instructions from Firebase once proximity is close
-//                instructionManager.speechManager.speak(instructionManager.currentInstruction)
+//            // Prevent index overflow by checking bounds
+//            if instructionManager.instructionIndex < locations.count {
+//                let nextTargetLocation = CLLocation(
+//                    latitude: locations[instructionManager.instructionIndex].latitude,
+//                    longitude: locations[instructionManager.instructionIndex].longitude
+//                )
+//                print("Next target location: \(nextTargetLocation.coordinate.latitude), \(nextTargetLocation.coordinate.longitude)")
 //            }
 //        }
+//    }
+
     
     //MARK: Check Stop and Traffic Light Proximity
     func checkStopProximity(to currentLocation: CLLocation?) {

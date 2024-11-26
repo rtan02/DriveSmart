@@ -93,11 +93,14 @@ struct TestView: View {
                     
                     // Pass the instruction manager
                     proximityManager.instructions = data.instructions
+                    
+                    instructionManager.setInstructions(data.instructions)
 
                     isDataLoaded = true
                 }
                 
                 if !isStarted {
+                    
                     locationManager.startUpdatingLocation()
                     speechRecognizerManager.requestAuthorization()
                 }
@@ -116,10 +119,16 @@ struct TestView: View {
             proximityManager.checkStartProximity(to: newLocation, locations: locationData.locations, instructionIndex: instructionIndex)
             
             if isStarted {
+                
                 // Only check proximities if the route is started
                 proximityManager.checkStopProximity(to: newLocation)
                 proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)
                 proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
+//                proximityManager.checkInstructionProximity(
+//                            to: newLocation,
+//                            locations: locationData.locations,
+//                            instructionManager: instructionManager
+//                        )
             }
         }
         .alert(isPresented: $showProximityAlert) {  // Alert for proximity
