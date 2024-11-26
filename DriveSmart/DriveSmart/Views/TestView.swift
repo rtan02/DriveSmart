@@ -6,10 +6,10 @@ import CoreLocation
 struct TestView: View {
     
     // UI States
-    @State private var showRouteSheet = false
-    @State private var showResultsView = false
-    @State private var showProximityAlert = false
-    @State private var showRouteAlert = false
+    @State private var isShowingRouteSheet = false
+    @State private var isShowingResultsView = false
+    @State private var isShowingProximityAlert = false
+    @State private var isShowingRouteAlert = false
     
     // Logic States
     @State private var isStarted = false
@@ -58,15 +58,15 @@ struct TestView: View {
             VStack {
                 Spacer()
                 Button(action: {
-                    print("isStartLocationProximity: \(proximityManager.isStartLocationProximity)")
+                    print("isStartLocationProximity: \(proximityManager.isWithinStartLocation)")
                     print("isStarted: \(isStarted)")
                     // Must be within the starting location
-                    if proximityManager.isStartLocationProximity {
+                    if proximityManager.isWithinStartLocation {
                         isStarted = true
-                        showRouteSheet = true
+                        isShowingRouteSheet = true
                         locationManager.startUpdatingLocation()
                     } else {
-                        showProximityAlert = true
+                        isShowingProximityAlert = true
                     }
                 }) {
                     Text("Start Route")
@@ -124,33 +124,28 @@ struct TestView: View {
                 proximityManager.checkStopProximity(to: newLocation)
                 proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)
                 proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
-//                proximityManager.checkInstructionProximity(
-//                            to: newLocation,
-//                            locations: locationData.locations,
-//                            instructionManager: instructionManager
-//                        )
             }
         }
-        .alert(isPresented: $showProximityAlert) {  // Alert for proximity
+        .alert(isPresented: $isShowingProximityAlert) {  // Alert for proximity
             Alert(
                 title: Text("Not Near Route"),
                 message: Text("Please approach the starting location."),
                 dismissButton: .default(Text("OK"))
             )
         }
-        .sheet(isPresented: $showRouteSheet) {
-            RouteSheetView(currentInstruction: $instructionManager.currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $showRouteAlert, isNotInRoute: $proximityManager.isNotInRoute, onCancel: {
+        .sheet(isPresented: $isShowingRouteSheet) {
+            RouteSheetView(currentInstruction: $instructionManager.currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $isShowingRouteAlert, isNotInRoute: $proximityManager.isNotInRoute, onCancel: {
                 locationManager.stopUpdatingLocation()
                 speechRecognizerManager.stopRecording()
-                showRouteSheet = false
+                isShowingRouteSheet = false
                 isStarted = false
-                showResultsView = true // Trigger navigation to ResultsView
+                isShowingResultsView = true // Trigger navigation to ResultsView
             })
             .presentationDetents([.medium, .fraction(0.5)])
             .interactiveDismissDisabled()
         }
         .background(
-            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist), isActive: $showResultsView) {
+            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist), isActive: $isShowingResultsView) {
                 EmptyView()
             }
         )

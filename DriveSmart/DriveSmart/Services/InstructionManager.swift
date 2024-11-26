@@ -63,20 +63,5 @@ class InstructionManager: ObservableObject {
         }
         speechManager.speak(currentInstruction)
     }
-    
-//    func advanceToNextInstruction() {
-//        // Advance the instruction index only if there are more instructions
-//        if instructionIndex < instructions.count - 1 {
-//            instructionIndex += 1
-//            updateInstruction()
-//            print("\n Updated to instruction: \(currentInstruction)")
-//
-//        } else {
-//            // Final instruction or route completion
-//            currentInstruction = "Route completed."
-//            speechManager.speak(currentInstruction)
-//            print("Route completed.")
-//        }
-//    }
-
+   
 }

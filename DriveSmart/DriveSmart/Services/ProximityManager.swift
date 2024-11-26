@@ -3,7 +3,7 @@ import Foundation
 import CoreLocation
 
 class ProximityManager: ObservableObject {
-    @Published var isStartLocationProximity = false
+    @Published var isWithinStartLocation = false
     @Published var isNotInRoute = false
     @Published var isNearStopSign = false
     @Published var isNearTrafficLight = false
@@ -31,10 +31,10 @@ class ProximityManager: ObservableObject {
 
         
         if currentLocation.distance(from: startingLocation) < 1000 {
-            self.isStartLocationProximity = true
+            self.isWithinStartLocation = true
             print("User is within start location proximity")
         } else {
-            self.isStartLocationProximity = false
+            self.isWithinStartLocation = false
             print("User is NOT within start location proximity")
         }
     }
@@ -69,40 +69,6 @@ class ProximityManager: ObservableObject {
             print("User is close enough to the instruction, moving to the next one.")
         }
     }
-    
-//    func checkInstructionProximity(
-//        to currentLocation: CLLocation?,
-//        locations: [Location],
-//        instructionManager: InstructionManager
-//    ) {
-//        guard let currentLocation = currentLocation else { return }
-//        
-//        // Get the target location for the current instruction
-//        let targetLocation = CLLocation(
-//            latitude: locations[instructionManager.instructionIndex].latitude,
-//            longitude: locations[instructionManager.instructionIndex].longitude
-//        )
-//        
-//        // Calculate distance to the current instruction's target location
-//        let distanceToTarget = currentLocation.distance(from: targetLocation)
-//        print("Distance to instruction \(instructionManager.instructionIndex): \(distanceToTarget) meters")
-//        
-//        // If the user is close enough to the target, update the instruction
-//        if distanceToTarget < 20 { // Adjust threshold as necessary
-//            print("User is close to instruction \(instructionManager.instructionIndex)")
-//            
-//            instructionManager.advanceToNextInstruction()
-//            
-//            // Prevent index overflow by checking bounds
-//            if instructionManager.instructionIndex < locations.count {
-//                let nextTargetLocation = CLLocation(
-//                    latitude: locations[instructionManager.instructionIndex].latitude,
-//                    longitude: locations[instructionManager.instructionIndex].longitude
-//                )
-//                print("Next target location: \(nextTargetLocation.coordinate.latitude), \(nextTargetLocation.coordinate.longitude)")
-//            }
-//        }
-//    }
 
     
     //MARK: Check Stop and Traffic Light Proximity
