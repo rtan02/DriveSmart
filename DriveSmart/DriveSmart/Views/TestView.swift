@@ -87,6 +87,8 @@ struct TestView: View {
                     proximityManager.stopSigns = data.stopSigns
                     proximityManager.trafficLights = data.trafficLights
                     
+                    proximityManager.tests = data.tests
+                    
                     isDataLoaded = true
                 }
                 
@@ -111,6 +113,7 @@ struct TestView: View {
             
             if isStarted {
                 
+                proximityManager.checkProximityToTestLocations(to: newLocation, instructionManager: instructionManager)
                 // Only check proximities if the route is started
                 proximityManager.checkStopProximity(to: newLocation)
                 proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)

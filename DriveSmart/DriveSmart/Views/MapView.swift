@@ -119,6 +119,14 @@ struct MapView: UIViewRepresentable {
                 annotation.title = "Stop Sign"
                 mapView.addAnnotation(annotation)
             }
+        
+        //Test
+        for testLocation in firebaseManager.tests {
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = CLLocationCoordinate2D(latitude: testLocation.latitude, longitude: testLocation.longitude)
+                annotation.title = testLocation.instruction
+                mapView.addAnnotation(annotation)
+            }
         }
     
     func makeCoordinator() -> Coordinator {

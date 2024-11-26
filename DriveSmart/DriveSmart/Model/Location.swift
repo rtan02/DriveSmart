@@ -2,7 +2,8 @@ import CoreLocation
 
 struct LocationData {
     var name: String
-    var locations: [Location] // Coordinates
+    var locations: [Location] // Coordinates/GPA
+    var tests: [Location] //Instructions
     var trafficLights: [CLLocation]
     var stopSigns: [CLLocation]
 }

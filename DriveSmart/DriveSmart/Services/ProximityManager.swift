@@ -13,6 +13,8 @@ class ProximityManager: ObservableObject {
 
     var stopSigns: [CLLocation]
     var trafficLights: [CLLocation]
+    var tests: [Location] = []
+
     
     init(stopSigns: [CLLocation], trafficLights: [CLLocation]) {
         self.stopSigns = stopSigns
@@ -64,6 +66,29 @@ class ProximityManager: ObservableObject {
             print("User is close enough to the instruction: \(closestLocationName), instruction updated.")
         }
     }
+    
+    //MARK: Check Test Proximity
+        func checkProximityToTestLocations(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
+            guard let currentLocation = currentLocation else { return }
+            
+            var closestDistance = Double.greatestFiniteMagnitude
+            var closestInstruction = ""
+            
+            // Check test locations
+            for location in tests {
+                let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                let distance = currentLocation.distance(from: targetLocation)
+                if distance < closestDistance {
+                    closestDistance = distance
+                    closestInstruction = location.instruction
+                }
+            }
+            
+            // If the closest test location is within range (e.g., 20 meters), update the instruction
+            if closestDistance < 20 && closestInstruction != instructionManager.currentInstruction {
+                instructionManager.updateInstruction(with: closestInstruction)
+            }
+        }
     
     //MARK: Check Stop and Traffic Light Proximity
     func checkStopProximity(to currentLocation: CLLocation?) {
