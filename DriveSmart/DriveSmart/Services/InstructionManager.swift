@@ -2,7 +2,7 @@ import CoreLocation
 
 
 class InstructionManager: ObservableObject {
-    @Published var currentInstruction = "Proceed to the start location."
+    @Published var currentInstruction = ""
     
     private let speechManager: SpeechManager
     

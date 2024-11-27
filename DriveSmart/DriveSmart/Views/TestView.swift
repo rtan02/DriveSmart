@@ -115,7 +115,7 @@ struct TestView: View {
                 
                 proximityManager.checkProximityToTestLocations(to: newLocation, instructionManager: instructionManager)
                 // Only check proximities if the route is started
-                proximityManager.checkStopProximity(to: newLocation)
+                proximityManager.checkStopProximity(to: newLocation, instructionManager: instructionManager)
                 proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)
                 proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
 //                proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)

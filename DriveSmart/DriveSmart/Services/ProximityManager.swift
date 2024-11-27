@@ -91,7 +91,7 @@ class ProximityManager: ObservableObject {
         }
     
     //MARK: Check Stop and Traffic Light Proximity
-    func checkStopProximity(to currentLocation: CLLocation?) {
+    func checkStopProximity(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
         guard let currentLocation = currentLocation else { return }
         
         self.isNearTrafficLight = false
@@ -103,6 +103,7 @@ class ProximityManager: ObservableObject {
             if distance < 20 {
                 self.isNearStopSign = true
                 print("User is near a stop sign")
+                instructionManager.updateInstruction(with: "Approaching Stop Sign" )
                 break
             }
         }
@@ -113,6 +114,7 @@ class ProximityManager: ObservableObject {
             if distance < 20 {
                 self.isNearTrafficLight = true
                 print("User is near a traffic light")
+                instructionManager.updateInstruction(with: "Approaching Traffic Light" )
                 break
             }
         }
