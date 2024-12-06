@@ -4,11 +4,11 @@ import SwiftUI
 
 struct ResultsView: View {
     var checklistItems: [ChecklistItem]
+    var infractions: [Int] // List of over-speed values
 
-    
     var body: some View {
         ZStack {
-            VStack{
+            VStack {
                 WaveShape()
                     .fill(Color.white)
                     .frame(height: 600)
@@ -17,13 +17,14 @@ struct ResultsView: View {
             }
             
             VStack {
-                ScrollView{
+                ScrollView {
                     Spacer()
                     Image("result")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 200, height: 200)
                     Spacer()
+                    
                     HStack {
                         Text("Great Job!")
                             .font(.largeTitle)
@@ -44,22 +45,22 @@ struct ResultsView: View {
                     
                     // CHECKLIST ITEMS
                     VStack(alignment: .leading, spacing: 10) {
-                                Text("G2 Driving Checklist")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                
+                        Text("G2 Driving Checklist")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        
                         ForEach(checklistItems) { item in
-                                       HStack {
-                                           Image(systemName: item.isChecked ? "checkmark.square.fill" : "square")
-                                               .foregroundColor(item.isChecked ? .green : .black)
-
-                                           Text(item.name)
-                                               .font(.body)
-                                               .foregroundColor(.black)
-                                       }
-                                   }
+                            HStack {
+                                Image(systemName: item.isChecked ? "checkmark.square.fill" : "square")
+                                    .foregroundColor(item.isChecked ? .green : .black)
+                                
+                                Text(item.name)
+                                    .font(.body)
+                                    .foregroundColor(.black)
                             }
-                            .padding()
+                        }
+                    }
+                    .padding()
                     .background(Color.white)
                     .cornerRadius(10)
                     .shadow(radius: 5)
@@ -71,9 +72,18 @@ struct ResultsView: View {
                             .font(.headline)
                             .foregroundColor(.black)
                         
-                        Text("On (-64, 64) you were at 80 speed when you were supposed to be at 50.")
-                            .font(.body)
-                            .foregroundColor(.black.opacity(0.7))
+                        // Display infractions
+                        if infractions.isEmpty {
+                            Text("No speeding infractions recorded.")
+                                .font(.body)
+                                .foregroundColor(.black.opacity(0.7))
+                        } else {
+                            ForEach(infractions.indices, id: \.self) { index in
+                                Text("Infraction \(index + 1): Over by \(infractions[index]) km/h")
+                                    .font(.body)
+                                    .foregroundColor(.red)
+                            }
+                        }
                         
                         Text("It took you 30 min to complete this driving test.")
                             .font(.body)
@@ -109,6 +119,3 @@ struct ResultsView: View {
         .toolbarBackground(.visible, for: .navigationBar)
     }
 }
-
-
-

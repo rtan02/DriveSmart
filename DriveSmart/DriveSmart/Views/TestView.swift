@@ -14,7 +14,6 @@ struct TestView: View {
     @State private var isStarted = false
     @State private var isDataLoaded = false
     
-    
     // For Firebase
     @StateObject private var firebaseManager = FirebaseManager()
     @State private var locationData: LocationData? = nil
@@ -25,6 +24,16 @@ struct TestView: View {
     @StateObject private var speechRecognizerManager = SpeechRecognizerManager()
     @StateObject private var instructionManager = InstructionManager(speechManager: SpeechManager())
     @StateObject private var proximityManager: ProximityManager
+    
+    @State private var infractions: [Int] = [] // List of over-speed values
+
+    func handleSpeedingInfraction(_ overSpeed: Int) {
+        infractions.append(overSpeed)
+        print("Speeding infraction recorded: \(overSpeed) km/h over the limit")
+    }
+    
+    @State private var startTime: Date?
+    @State private var elapsedTime: TimeInterval?
     
     init(locationName: String) {
         self.locationName = locationName
@@ -51,7 +60,22 @@ struct TestView: View {
                     .font(.headline)
                     .foregroundColor(.gray)
             }
+            
+            // Speed Overlay
             VStack {
+                HStack {
+                    Spacer()
+                    SpeedOverlay(
+                        speed: locationManager.currentSpeed,
+                        speedLimit: locationManager.speedLimit,
+                        onInfraction: handleSpeedingInfraction
+                    )
+                    .padding()
+                }
+                Spacer()
+            }
+            
+           /* VStack {
                 Spacer()
                 Button(action: {
                     print("isStartLocationProximity: \(proximityManager.isWithinStartLocation)")
@@ -73,7 +97,53 @@ struct TestView: View {
                         .cornerRadius(10)
                 }
                 .padding()
-            }
+            }*/
+            // Floating Instructions Overlay
+                        VStack {
+                            Spacer()
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Instructions")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                
+                                Text(instructionManager.currentInstruction)
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.leading)
+                                    .lineSpacing(4)
+                                
+                                Text("Recognized Text: \(speechRecognizerManager.recognizedText)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                                    .lineLimit(2)
+                                
+                                HStack {
+                                    Button(action: {
+                                        if proximityManager.isWithinStartLocation {
+                                            isStarted = true
+                                            locationManager.startUpdatingLocation()
+                                        } else {
+                                            isShowingProximityAlert = true
+                                        }
+                                    }) {
+                                        Text(isStarted ? "End Route" : "Start Route")
+                                            .font(.headline)
+                                            .padding()
+                                            .frame(maxWidth: .infinity)
+                                            .background(isStarted ? Color.red : Color.blue)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(10)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .background(Color.black.opacity(0.75)) // Dark background with opacity
+                            .cornerRadius(16)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 20)
+                        }
+                    
         }
         .toolbarBackground(Color("UIBlack"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -140,7 +210,7 @@ struct TestView: View {
             .interactiveDismissDisabled()
         }
         .background(
-            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist), isActive: $isShowingResultsView) {
+            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist, infractions: infractions), isActive: $isShowingResultsView) {
                 EmptyView()
             }
         )
@@ -204,5 +274,4 @@ struct RouteSheetView: View {
         }//RouteAlert
     }
 }
-
 
