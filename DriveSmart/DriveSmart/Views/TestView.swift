@@ -4,27 +4,35 @@ import CoreLocation
 
 struct TestView: View {
     
-    // UI States
-    @State private var isShowingRouteSheet = false
+    //MARK: STATES
+    
+    //**UI States
     @State private var isShowingResultsView = false
     @State private var isShowingProximityAlert = false
-    @State private var isShowingRouteAlert = false
     
-    // Logic States
-    @State private var isStarted = false
-    @State private var isDataLoaded = false
+//    @State private var isShowingRouteAlert = false
+//    //To show if user is within starting location
     
-    // For Firebase
+    @State private var isRouteButtonToggled = false
+    
+    //**Logic States
+    @State private var isStarted = false //Controls what starts the test
+    @State private var isDataLoaded = false //Checks if Data from firebase is loaded
+
+    
+    //**Services
     @StateObject private var firebaseManager = FirebaseManager()
     @State private var locationData: LocationData? = nil
-    var locationName: String // To determine what location they want
+    var locationName: String // To determine what location they want, passed from results page
     
-    // Initializers
+    //**Initializers
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechRecognizerManager = SpeechRecognizerManager()
     @StateObject private var instructionManager = InstructionManager(speechManager: SpeechManager())
     @StateObject private var proximityManager: ProximityManager
     
+    
+    //MARK: Speed
     @State private var infractions: [Int] = [] // List of over-speed values
 
     func handleSpeedingInfraction(_ overSpeed: Int) {
@@ -35,21 +43,21 @@ struct TestView: View {
     @State private var startTime: Date?
     @State private var elapsedTime: TimeInterval?
     
+
+    
     init(locationName: String) {
         self.locationName = locationName
         _proximityManager = StateObject(wrappedValue: ProximityManager(stopSigns: [], trafficLights: [])) // Default empty
     }
     
+    var coordinates: [CLLocationCoordinate2D] {
+        let coords = locationData?.locations.map {
+            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+        } ?? []
+        return coords
+    }
+    
     var body: some View {
-        
-        var coordinates: [CLLocationCoordinate2D] {
-            let coords = locationData?.locations.map {
-                CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
-            } ?? []
-            return coords
-        }
-        
-        
         ZStack {
             if isDataLoaded {
                 MapView(coordinates: coordinates, userLocation: locationManager.currentLocation?.coordinate, firebaseManager: firebaseManager)
@@ -102,36 +110,56 @@ struct TestView: View {
                         VStack {
                             Spacer()
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("Instructions")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                
-                                Text(instructionManager.currentInstruction)
-                                    .font(.body)
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.leading)
-                                    .lineSpacing(4)
-                                
-                                Text("Recognized Text: \(speechRecognizerManager.recognizedText)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white)
-                                    .lineLimit(2)
+                                if isStarted{
+                                    HStack{
+                                        Spacer()
+                                        
+                                        Text("Instructions")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                        
+                                        Spacer()
+                                    }
+                                    Text(instructionManager.currentInstruction)
+                                        .font(.body)
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.leading)
+                                        .lineSpacing(4)
+                                    
+                                    Text("Recognized Text: \(speechRecognizerManager.recognizedText)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.white)
+                                        .lineLimit(2)
+                                }
                                 
                                 HStack {
                                     Button(action: {
-                                        if proximityManager.isWithinStartLocation {
-                                            isStarted = true
-                                            locationManager.startUpdatingLocation()
-                                        } else {
-                                            isShowingProximityAlert = true
-                                        }
+                                        if !isStarted && !isRouteButtonToggled{
+                                                    // First click: Start the route
+                                                    if proximityManager.isWithinStartLocation {
+                                                        isStarted = true
+                                                        isRouteButtonToggled = true
+                                                        locationManager.startUpdatingLocation()
+                                                        print("Route started.")
+                                                    } else {
+                                                        isShowingProximityAlert = true
+                                                    }
+                                                } else if isStarted {
+                                                    // Second click: End the route and go to results page
+                                                    isStarted = false
+                                                    locationManager.stopUpdatingLocation()
+                                                    isRouteButtonToggled = true
+                                                    print("Route ended.")
+                                                    isShowingResultsView = true
+                                                }
+                                        
                                     }) {
-                                        Text(isStarted ? "End Route" : "Start Route")
+                                        Text(isRouteButtonToggled ? "End Route" : "Start Route")
                                             .font(.headline)
                                             .padding()
                                             .frame(maxWidth: .infinity)
-                                            .background(isStarted ? Color.red : Color.blue)
+                                            .background(isRouteButtonToggled ? Color.red : Color.blue)
                                             .foregroundColor(.white)
                                             .cornerRadius(10)
                                     }
@@ -147,6 +175,9 @@ struct TestView: View {
         }
         .toolbarBackground(Color("UIBlack"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .navigationDestination(isPresented: $isShowingResultsView) {
+            ResultsView(checklistItems: speechRecognizerManager.checklist, infractions: infractions)
+                  }
         .onAppear {
             // Fetch location data from Firebase
             firebaseManager.fetchLocationData(for: locationName) { fetchedData in
@@ -198,80 +229,22 @@ struct TestView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-        .sheet(isPresented: $isShowingRouteSheet) {
-            RouteSheetView(currentInstruction: $instructionManager.currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $isShowingRouteAlert, isNotInRoute: $proximityManager.isNotInRoute, onCancel: {
-                locationManager.stopUpdatingLocation()
-                speechRecognizerManager.stopRecording()
-                isShowingRouteSheet = false
-                isStarted = false
-                isShowingResultsView = true // Trigger navigation to ResultsView
-            })
-            .presentationDetents([.medium, .fraction(0.5)])
-            .interactiveDismissDisabled()
-        }
-        .background(
-            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist, infractions: infractions), isActive: $isShowingResultsView) {
-                EmptyView()
-            }
-        )
+        
+//        .sheet(isPresented: $isShowingRouteSheet) {
+//            RouteSheetView(currentInstruction: $instructionManager.currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $isShowingRouteAlert, isNotInRoute: $proximityManager.isNotInRoute, onCancel: {
+//                locationManager.stopUpdatingLocation()
+//                speechRecognizerManager.stopRecording()
+//                isShowingRouteSheet = false
+//                isStarted = false
+//                isShowingResultsView = true // Trigger navigation to ResultsView
+//            })
+//            .presentationDetents([.medium, .fraction(0.5)])
+//            .interactiveDismissDisabled()
+//        }
+//        .background(
+//            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist, infractions: infractions), isActive: $isShowingResultsView) {
+//                EmptyView()
+//            }
+//        )
     }
 }
-
-//SHEET WILL APPEAR WHEN USER CLICKS THE BUTTON, IT CANNOT BE DISMISSED UNTIL USER HAS CLICKED CANCEL ROUTE
-struct RouteSheetView: View {
-    @Binding var currentInstruction: String
-    @Binding var recognizedText: String
-    @Binding var showRouteAlert: Bool
-    @Binding var isNotInRoute: Bool
-    var onCancel: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Test Instructions")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text(currentInstruction)
-                .font(.body)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding()
-            
-            Spacer()
-            
-            Text(recognizedText)
-                .font(.subheadline)
-                .lineLimit(2)
-                .padding()
-                .cornerRadius(10)
-            
-            Spacer()
-            
-            Button(action: {
-                onCancel()
-            }) {
-                Text("End Route")
-                    .font(.headline)
-                    .padding()
-                    .background(Color.red)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .padding()
-        }
-        .padding()
-        .alert(isPresented: $showRouteAlert) {
-            Alert(
-                title: Text("Off Route"),
-                message: Text("You are off the designated route. Please return to the path."),
-                dismissButton: .default(Text("OK")) {
-                    // Dismiss button is temporarily inactive until user returns to the route
-                    if isNotInRoute {
-                        showRouteAlert = true
-                    }
-                }
-            )
-        }//RouteAlert
-    }
-}
-
