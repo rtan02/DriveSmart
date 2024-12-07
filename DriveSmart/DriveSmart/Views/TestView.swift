@@ -139,7 +139,7 @@ struct TestView: View {
                                                     isShowingResultsView = true
                                                     
                                                     let currentDate = Date()
-                                                    firebaseManager.saveSession(checklist: speechRecognizerManager.checklist, date: currentDate)
+                                                    firebaseManager.saveSession(location: locationName, checklist: speechRecognizerManager.checklist, date: currentDate)
                                                     { success in
                                                             if success {
                                                                 print("Session saved to Firebase.")

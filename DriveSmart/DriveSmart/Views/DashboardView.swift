@@ -86,6 +86,11 @@ struct DashboardView: View {
                     } else {
                         ForEach(firebaseManager.sessions, id: \.date) { session in
                             VStack(alignment: .leading, spacing: 5) {
+                                
+                                Text("Location: \(session.location)")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                
                                 Text("Date: \(session.date.formatted())")
                                     .font(.headline)
                                     .foregroundColor(.white)

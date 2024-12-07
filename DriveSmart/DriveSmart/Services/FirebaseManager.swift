@@ -169,13 +169,15 @@ class FirebaseManager: ObservableObject {
                     let checklistData = data["checklist"] as? [[String: Any]] ?? []
                     let checklist = checklistData.map { ChecklistItem(name: $0["text"] as? String ?? "", isChecked: $0["isCompleted"] as? Bool ?? false) }
                     let date = (data["date"] as? Timestamp)?.dateValue() ?? Date()
-                    return Session(checklist: checklist, date: date)
+                    let location = data["location"] as? String ?? ""
+                    return Session(location: location, checklist: checklist, date: date)
                 } ?? []
             }
         }
     
-    func saveSession(checklist: [ChecklistItem], date: Date, completion: @escaping (Bool) -> Void) {
+    func saveSession(location: String, checklist: [ChecklistItem], date: Date, completion: @escaping (Bool) -> Void) {
             let sessionData: [String: Any] = [
+                "location":location,
                 "date": Timestamp(date: date), // Store date as a Firestore Timestamp
                 "checklist": checklist.map { [
                     "text": $0.name,

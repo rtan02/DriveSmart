@@ -101,7 +101,7 @@ struct ResultsView: View {
                     .padding(.top, 20)
                     
                     // Dashboard Button
-                    NavigationLink(destination: DashboardView()) {
+                    NavigationLink(destination: HomePageView()) {
                         Text("Return Home")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -109,7 +109,7 @@ struct ResultsView: View {
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
-                    .padding(100)
+                    .padding(10)
                 }
             }
         }
