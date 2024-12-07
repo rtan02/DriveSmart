@@ -168,15 +168,37 @@ struct MapView: UIViewRepresentable {
         return mapView
     }
     
+    //This old one will center on the user location instead
+    
+//    func updateUIView(_ uiView: MKMapView, context: Context) {
+//        if let userLocation = userLocation {
+//            uiView.setCenter(userLocation, animated: true)
+//        }
+//        
+//        // Clear existing annotations before adding updated ones
+//        uiView.removeAnnotations(uiView.annotations)
+//        addFirebaseAnnotations(to: uiView)
+//    }
+    
+    //Zooms onto the first coordinate location
+    
     func updateUIView(_ uiView: MKMapView, context: Context) {
-        if let userLocation = userLocation {
-            uiView.setCenter(userLocation, animated: true)
+        if let firstCoordinate = coordinates.first {
+            let region = MKCoordinateRegion(
+                center: firstCoordinate,
+                latitudinalMeters: 400, //These are how much it will zoom into the map
+                longitudinalMeters: 400
+            )
+            // Set the map view to this region
+            uiView.setRegion(region, animated: true)
         }
         
         // Clear existing annotations before adding updated ones
         uiView.removeAnnotations(uiView.annotations)
         addFirebaseAnnotations(to: uiView)
     }
+
+
     
     private func addRoutes(to mapView: MKMapView) {
         if coordinates.count >= 2 {

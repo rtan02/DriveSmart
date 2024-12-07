@@ -138,10 +138,15 @@ struct TestView: View {
                                         if !isStarted && !isRouteButtonToggled{
                                                     // First click: Start the route
                                                     if proximityManager.isWithinStartLocation {
+                                                        
                                                         isStarted = true
                                                         isRouteButtonToggled = true
                                                         locationManager.startUpdatingLocation()
+                                                        try? speechRecognizerManager.startRecording()
                                                         print("Route started.")
+                                                        
+                                                        
+                                                        
                                                     } else {
                                                         isShowingProximityAlert = true
                                                     }
@@ -150,6 +155,7 @@ struct TestView: View {
                                                     isStarted = false
                                                     locationManager.stopUpdatingLocation()
                                                     isRouteButtonToggled = true
+                                                    speechRecognizerManager.stopRecording()
                                                     print("Route ended.")
                                                     isShowingResultsView = true
                                                 }
@@ -187,7 +193,6 @@ struct TestView: View {
                     // Pass the stop signs and traffic lights to proximity manager
                     proximityManager.stopSigns = data.stopSigns
                     proximityManager.trafficLights = data.trafficLights
-                    
                     proximityManager.tests = data.tests
                     
                     isDataLoaded = true
