@@ -83,29 +83,8 @@ struct TestView: View {
                 Spacer()
             }
             
-           /* VStack {
-                Spacer()
-                Button(action: {
-                    print("isStartLocationProximity: \(proximityManager.isWithinStartLocation)")
-                    print("isStarted: \(isStarted)")
-                    // Must be within the starting location
-                    if proximityManager.isWithinStartLocation {
-                        isStarted = true
-                        isShowingRouteSheet = true
-                        locationManager.startUpdatingLocation()
-                    } else {
-                        isShowingProximityAlert = true
-                    }
-                }) {
-                    Text("Start Route")
-                        .font(.headline)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .padding()
-            }*/
+
+            
             // Floating Instructions Overlay
                         VStack {
                             Spacer()
@@ -158,6 +137,16 @@ struct TestView: View {
                                                     speechRecognizerManager.stopRecording()
                                                     print("Route ended.")
                                                     isShowingResultsView = true
+                                                    
+                                                    let currentDate = Date()
+                                                    firebaseManager.saveSession(checklist: speechRecognizerManager.checklist, date: currentDate)
+                                                    { success in
+                                                            if success {
+                                                                print("Session saved to Firebase.")
+                                                            } else {
+                                                                print("Failed to save session.")
+                                                            }
+                                                        }
                                                 }
                                         
                                     }) {
