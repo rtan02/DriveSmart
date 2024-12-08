@@ -1,15 +1,14 @@
+//Created by: Melissa Munoz
+
 import SwiftUI
 
 struct ResultsView: View {
-    @State private var checklistItems = [
-        ChecklistItem(name: "Adjust Safety Devices", isChecked: false),
-        ChecklistItem(name: "Parallel Parking", isChecked: false),
-        ChecklistItem(name: "Lane Change", isChecked: true)
-    ]
-    
+    var checklistItems: [ChecklistItem]
+    var infractions: [Int] // List of over-speed values
+
     var body: some View {
         ZStack {
-            VStack{
+            VStack {
                 WaveShape()
                     .fill(Color.white)
                     .frame(height: 600)
@@ -18,13 +17,14 @@ struct ResultsView: View {
             }
             
             VStack {
-                ScrollView{
+                ScrollView {
                     Spacer()
                     Image("result")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 200, height: 200)
                     Spacer()
+                    
                     HStack {
                         Text("Great Job!")
                             .font(.largeTitle)
@@ -49,7 +49,7 @@ struct ResultsView: View {
                             .font(.headline)
                             .foregroundColor(.black)
                         
-                        ForEach($checklistItems) { $item in
+                        ForEach(checklistItems) { item in
                             HStack {
                                 Image(systemName: item.isChecked ? "checkmark.square.fill" : "square")
                                     .foregroundColor(item.isChecked ? .green : .black)
@@ -72,9 +72,18 @@ struct ResultsView: View {
                             .font(.headline)
                             .foregroundColor(.black)
                         
-                        Text("On (-64, 64) you were at 80 speed when you were supposed to be at 50.")
-                            .font(.body)
-                            .foregroundColor(.black.opacity(0.7))
+                        // Display infractions
+                        if infractions.isEmpty {
+                            Text("No speeding infractions recorded.")
+                                .font(.body)
+                                .foregroundColor(.black.opacity(0.7))
+                        } else {
+                            ForEach(infractions.indices, id: \.self) { index in
+                                Text("Infraction \(index + 1): Over by \(infractions[index]) km/h")
+                                    .font(.body)
+                                    .foregroundColor(.red)
+                            }
+                        }
                         
                         Text("It took you 30 min to complete this driving test.")
                             .font(.body)
@@ -92,7 +101,7 @@ struct ResultsView: View {
                     .padding(.top, 20)
                     
                     // Dashboard Button
-                    NavigationLink(destination: DashboardView()) {
+                    NavigationLink(destination: HomePageView()) {
                         Text("Return Home")
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -100,24 +109,13 @@ struct ResultsView: View {
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
-                    .padding(100)
+                    .padding(10)
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
         .background(Color("UIBlue").edgesIgnoringSafeArea(.all))
         .toolbarBackground(Color("UIBlack"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-    }
-}
-
-struct ChecklistItem: Identifiable {
-    let id = UUID()
-    var name: String
-    var isChecked: Bool
-}
-
-struct ResultsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ResultsView()
     }
 }
