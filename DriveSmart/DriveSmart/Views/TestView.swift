@@ -1,3 +1,4 @@
+//Created by: Melissa Munoz
 
 import SwiftUI
 import CoreLocation
@@ -6,30 +7,25 @@ struct TestView: View {
     
     //MARK: STATES
     
-    //**UI States
+    //UI States
     @State private var isShowingResultsView = false
     @State private var isShowingProximityAlert = false
-    
-//    @State private var isShowingRouteAlert = false
-//    //To show if user is within starting location
-    
     @State private var isRouteButtonToggled = false
     
-    //**Logic States
+    //Logic States
     @State private var isStarted = false //Controls what starts the test
     @State private var isDataLoaded = false //Checks if Data from firebase is loaded
 
-    
-    //**Services
+    //Services
     @StateObject private var firebaseManager = FirebaseManager()
     @State private var locationData: LocationData? = nil
     var locationName: String // To determine what location they want, passed from results page
-    
-    //**Initializers
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var speechManager = SpeechManager()
     @StateObject private var speechRecognizerManager = SpeechRecognizerManager()
     @StateObject private var instructionManager = InstructionManager(speechManager: SpeechManager())
-    @StateObject private var proximityManager: ProximityManager
+    @StateObject private var proximityManager : ProximityManager
+
     
     
     //MARK: Speed
@@ -47,7 +43,10 @@ struct TestView: View {
     
     init(locationName: String) {
         self.locationName = locationName
-        _proximityManager = StateObject(wrappedValue: ProximityManager(stopSigns: [], trafficLights: [])) // Default empty
+        _proximityManager = StateObject(wrappedValue: ProximityManager(
+                    stopSigns: [],
+                    trafficLights: [], tests: []
+                ))
     }
     
     var coordinates: [CLLocationCoordinate2D] {
@@ -114,10 +113,13 @@ struct TestView: View {
                                 
                                 HStack {
                                     Button(action: {
+                                                                                             
                                         if !isStarted && !isRouteButtonToggled{
                                                     // First click: Start the route
+                                            
                                                     if proximityManager.isWithinStartLocation {
                                                         
+                                                        proximityManager.resetSpokenSets() // Clear spoken sets
                                                         isStarted = true
                                                         isRouteButtonToggled = true
                                                         locationManager.startUpdatingLocation()
@@ -130,7 +132,7 @@ struct TestView: View {
                                                         isShowingProximityAlert = true
                                                     }
                                                 } else if isStarted {
-                                                    // Second click: End the route and go to results page
+                                                    // Second click: Save the results
                                                     isStarted = false
                                                     locationManager.stopUpdatingLocation()
                                                     isRouteButtonToggled = true
@@ -174,6 +176,7 @@ struct TestView: View {
             ResultsView(checklistItems: speechRecognizerManager.checklist, infractions: infractions)
                   }
         .onAppear {
+
             // Fetch location data from Firebase
             firebaseManager.fetchLocationData(for: locationName) { fetchedData in
                 if let data = fetchedData {
@@ -187,11 +190,11 @@ struct TestView: View {
                     isDataLoaded = true
                 }
                 
-                if !isStarted {
+//                if !isStarted {
                     
                     locationManager.startUpdatingLocation()
                     speechRecognizerManager.requestAuthorization()
-                }
+//                }
             }
         }
         .onDisappear {
@@ -199,7 +202,7 @@ struct TestView: View {
         }
         .onReceive(locationManager.$currentLocation) { newLocation in
             
-            print("Received new location: \(newLocation?.coordinate.latitude ?? 0), \(newLocation?.coordinate.longitude ?? 0)")  // Add this line
+//            print("Received new location: \(newLocation?.coordinate.latitude ?? 0), \(newLocation?.coordinate.longitude ?? 0)")  // Add this line
 
             guard let locationData = locationData else { return }
              
@@ -213,7 +216,6 @@ struct TestView: View {
                 proximityManager.checkStopProximity(to: newLocation, instructionManager: instructionManager)
                 proximityManager.checkRouteProximity(to: newLocation, locations: locationData.locations)
                 proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
-//                proximityManager.checkInstructionProximity(to: newLocation, locations: locationData.locations, instructionManager: instructionManager)
             }
         }
         .alert(isPresented: $isShowingProximityAlert) {  // Alert for proximity
@@ -223,22 +225,5 @@ struct TestView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-        
-//        .sheet(isPresented: $isShowingRouteSheet) {
-//            RouteSheetView(currentInstruction: $instructionManager.currentInstruction, recognizedText: $speechRecognizerManager.recognizedText, showRouteAlert: $isShowingRouteAlert, isNotInRoute: $proximityManager.isNotInRoute, onCancel: {
-//                locationManager.stopUpdatingLocation()
-//                speechRecognizerManager.stopRecording()
-//                isShowingRouteSheet = false
-//                isStarted = false
-//                isShowingResultsView = true // Trigger navigation to ResultsView
-//            })
-//            .presentationDetents([.medium, .fraction(0.5)])
-//            .interactiveDismissDisabled()
-//        }
-//        .background(
-//            NavigationLink(destination: ResultsView(checklistItems: speechRecognizerManager.checklist, infractions: infractions), isActive: $isShowingResultsView) {
-//                EmptyView()
-//            }
-//        )
     }
 }

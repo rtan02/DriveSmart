@@ -12,37 +12,38 @@ class SpeechRecognizerManager: ObservableObject {
 
     @Published var checklist: [ChecklistItem] = [
         ChecklistItem(name: "Seatbelt", isChecked: false),
+        ChecklistItem(name: "Mirrors", isChecked: false),
         ChecklistItem(name: "Parallel Parking", isChecked: false),
-        ChecklistItem(name: "Left", isChecked: false)
+        ChecklistItem(name: "Blind Spot", isChecked: false),
     ]
     
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private var audioEngine = AVAudioEngine()
-    var audioPlayer: AVAudioPlayer?
+//    var audioPlayer: AVAudioPlayer?
 
     
     // Function to play a checkmark sound using NSDataAsset
-    func playCheckmarkSound() {
-        if let asset = NSDataAsset(name: "Validate") { // Make sure the name matches the asset name in the Assets folder
-            do {
-                // If a player is already playing, stop it first
-                audioPlayer?.stop()
-                audioPlayer = nil // Release the previous player
-                
-                // Use NSDataAsset's data property to access the audio file stored in Validate.wav.
-                audioPlayer = try AVAudioPlayer(data: asset.data, fileTypeHint: "wav")
-                
-                // Play the sound.
-                audioPlayer?.play()
-            } catch let error as NSError {
-                print("Error playing checkmark sound: \(error.localizedDescription)")
-            }
-        } else {
-            print("Validate.wav sound asset not found.")
-        }
-    }
+//    func playCheckmarkSound() {
+//        if let asset = NSDataAsset(name: "Validate") { // Make sure the name matches the asset name in the Assets folder
+//            do {
+//                // If a player is already playing, stop it first
+//                audioPlayer?.stop()
+//                audioPlayer = nil // Release the previous player
+//                
+//                // Use NSDataAsset's data property to access the audio file stored in Validate.wav.
+//                audioPlayer = try AVAudioPlayer(data: asset.data, fileTypeHint: "wav")
+//                
+//                // Play the sound.
+//                audioPlayer?.play()
+//            } catch let error as NSError {
+//                print("Error playing checkmark sound: \(error.localizedDescription)")
+//            }
+//        } else {
+//            print("Validate.wav sound asset not found.")
+//        }
+//    }
     
     func startRecording() throws {
         // Check microphone permission before starting recording
@@ -70,6 +71,8 @@ class SpeechRecognizerManager: ObservableObject {
         }
 
         let inputNode = audioEngine.inputNode
+        
+        //Request the streamed audio object to the SFSpeechRecognizer (This is for audio streaming)
         self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
 
         guard let request = recognitionRequest else {
@@ -77,16 +80,20 @@ class SpeechRecognizerManager: ObservableObject {
             return
         }
 
+        //Lets you get results through the audio stream
         request.shouldReportPartialResults = true
 
+        //Represents the process of converting spoken audio into text
         self.recognitionTask = speechRecognizer?.recognitionTask(with: request) { result, error in
             if let err = error {
                 print("Error during recognition task: \(err)")
                 return
             }
 
+            //Whether the recognition process is complete
             var isFinal = false
 
+            //This is responsible for retrieving the text from the audio
             if let result = result {
                 self.recognizedText = result.bestTranscription.formattedString
                 isFinal = result.isFinal
@@ -99,7 +106,7 @@ class SpeechRecognizerManager: ObservableObject {
                                 if recognizedText.contains(self.checklist[index].name.lowercased()) {
                                     // If a match is found, mark the item as checked
                                     self.checklist[index].isChecked = true
-                                    self.playCheckmarkSound()  // Play the sound when an item is checked
+//                                    self.playCheckmarkSound()  // Play the sound when an item is checked
                                 }
                             }
                 

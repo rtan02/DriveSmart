@@ -1,9 +1,5 @@
-//
-//  Session.swift
-//  DriveSmart
-//
-//  Created by Eli Munoz on 2024-12-07.
-//
+//Created by: Melissa Munoz
+
 
 import Foundation
 

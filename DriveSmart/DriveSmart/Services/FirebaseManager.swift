@@ -1,3 +1,5 @@
+//Created by: Melissa Munoz
+
 import FirebaseFirestore
 import CoreLocation
 import MapKit

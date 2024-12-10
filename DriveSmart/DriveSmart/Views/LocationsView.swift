@@ -1,3 +1,5 @@
+//Created by: Melissa Munoz
+
 import SwiftUI
 
 struct LocationsView: View {
@@ -77,6 +79,19 @@ struct LocationsView: View {
                             .shadow(radius: 3)
                             .padding(.horizontal, 40)
                     }
+                    
+                    //Milton
+                    NavigationLink(destination:TestView(locationName: "Milton")){
+                        Text("Milton")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.black)
+                            .cornerRadius(8)
+                            .shadow(radius: 3)
+                            .padding(.horizontal, 40)
+                    }
+                    
                     
                     
                     

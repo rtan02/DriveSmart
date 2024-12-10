@@ -1,10 +1,13 @@
+//Created by: Melissa Munoz
 
 import Foundation
 import CoreLocation
 
 class ProximityManager: ObservableObject {
+    
     @Published var isWithinStartLocation = false
     @Published var isNotInRoute = false
+    
     @Published var isNearStopSign = false
     @Published var isNearTrafficLight = false
     
@@ -16,10 +19,12 @@ class ProximityManager: ObservableObject {
     var tests: [Location] = []
 
     
-    init(stopSigns: [CLLocation], trafficLights: [CLLocation]) {
-        self.stopSigns = stopSigns
-        self.trafficLights = trafficLights
-    }
+    init(stopSigns: [CLLocation], trafficLights: [CLLocation], tests: [Location]) {
+            self.stopSigns = stopSigns
+            self.trafficLights = trafficLights
+        self.tests = tests
+//            self.instructionManager = instructionManager
+        }
     
     //During testing, there was repetition in the voice commands
     //App needs to track which ones have already been spoken
@@ -27,8 +32,6 @@ class ProximityManager: ObservableObject {
     private var spokenTrafficLights: Set<CLLocation> = []
     private var spokenInstructionMarkers: Set<String> = []
     private var spokenTestMarkers: Set<String> = []
-
-    
     
     //MARK: Check proximity from currentLocation
     func checkStartProximity(to currentLocation: CLLocation?, locations: [Location]) {
@@ -51,61 +54,6 @@ class ProximityManager: ObservableObject {
     }
     
     //MARK: Check Instruction Proximity
-    func checkInstructionProximity(to currentLocation: CLLocation?, locations: [Location], instructionManager: InstructionManager) {
-        guard let currentLocation = currentLocation else { return }
-        
-        var closestDistance = Double.greatestFiniteMagnitude
-        var closestLocationName: String = ""
-        
-        for location in locations {
-            let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-            let distance = currentLocation.distance(from: targetLocation)
-            
-            print("Checking location \(location.instruction) at distance: \(distance) meters")
-            
-            if distance < closestDistance {
-                closestDistance = distance
-                closestLocationName = location.instruction // Set the closest location's name
-            }
-        }
-        
-        // Update the instruction only when the user approaches a new location (within 20 meters)
-        if closestDistance < 20 && closestLocationName != instructionManager.currentInstruction {
-            if !spokenInstructionMarkers.contains(closestLocationName) {
-                instructionManager.updateInstruction(with: closestLocationName)
-                print("Adding \(closestLocationName) to spoken instruction set.")
-                spokenInstructionMarkers.insert(closestLocationName) // Add to the spoken set
-            }
-        }
-    }
-
-    //MARK: Check Test Proximity
-    func checkProximityToTestLocations(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
-        guard let currentLocation = currentLocation else { return }
-        
-        var closestDistance = Double.greatestFiniteMagnitude
-        var closestInstruction = ""
-        
-        // Check test locations
-        for location in tests {
-            let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-            let distance = currentLocation.distance(from: targetLocation)
-            if distance < closestDistance {
-                closestDistance = distance
-                closestInstruction = location.instruction
-            }
-        }
-        
-        // If the closest test location is within range (e.g., 20 meters) AND is not the same as the current instruction, update the instruction
-        if closestDistance < 20 && closestInstruction != instructionManager.currentInstruction {
-            if !spokenTestMarkers.contains(closestInstruction) {
-                instructionManager.updateInstruction(with: closestInstruction)
-                print("Adding \(closestInstruction) to spoken test set.")
-                spokenTestMarkers.insert(closestInstruction) // Add to the spoken set
-            }
-        }
-    }
-//    //MARK: Check Instruction Proximity
 //    func checkInstructionProximity(to currentLocation: CLLocation?, locations: [Location], instructionManager: InstructionManager) {
 //        guard let currentLocation = currentLocation else { return }
 //        
@@ -121,43 +69,109 @@ class ProximityManager: ObservableObject {
 //            if distance < closestDistance {
 //                closestDistance = distance
 //                closestLocationName = location.instruction // Set the closest location's name
+//                instructionManager.updateInstruction(with: location.instruction)
 //            }
 //        }
 //        
 //        // Update the instruction only when the user approaches a new location (within 20 meters)
 //        if closestDistance < 20 && closestLocationName != instructionManager.currentInstruction {
-//            instructionManager.updateInstruction(with: closestLocationName)
-//            print("User is close enough to the instruction: \(closestLocationName), instruction updated.")
+//            if !spokenInstructionMarkers.contains(closestLocationName) {
+//                spokenInstructionMarkers.insert(closestLocationName) // Add to the spoken set
+//                instructionManager.updateInstruction(with: closestLocationName)
+//                print("Adding \(closestLocationName) to spoken instruction set.")
+//            }
 //        }
 //    }
-//    
+
 //    //MARK: Check Test Proximity
-//        func checkProximityToTestLocations(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
-//            guard let currentLocation = currentLocation else { return }
-//            
-//            var closestDistance = Double.greatestFiniteMagnitude
-//            var closestInstruction = ""
-//            
-//            // Check test locations
-//            for location in tests {
-//                let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-//                let distance = currentLocation.distance(from: targetLocation)
-//                if distance < closestDistance {
-//                    closestDistance = distance
-//                    closestInstruction = location.instruction
-//                }
-//            }
-//            
-//            // If the closest test location is within range (e.g., 20 meters) AND is not the same as the current instruction, update the instruction
-//            if closestDistance < 20 && closestInstruction != instructionManager.currentInstruction {
-//                if !spokenInstructionMarkers.contains(closestInstruction){
-//                    instructionManager.updateInstruction(with: closestInstruction)
-//                    print("Adding \(closestInstruction) to spoken instruction set.")
-//                    
-//                }
+//    func checkProximityToTestLocations(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
+//        guard let currentLocation = currentLocation else { return }
+//        
+//        var closestDistance = Double.greatestFiniteMagnitude
+//        var closestInstruction = ""
+//        
+//        // Check test locations
+//        for location in tests {
+//            let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+//            let distance = currentLocation.distance(from: targetLocation)
+//            if distance < closestDistance {
+//                closestDistance = distance
+//                closestInstruction = location.instruction
 //            }
 //        }
-//    
+//        
+//        // If the closest test location is within range (e.g., 20 meters) AND is not the same as the current instruction, update the instruction
+//        if closestDistance < 20 && closestInstruction != instructionManager.currentInstruction {
+//            if !spokenTestMarkers.contains(closestInstruction) {
+//                spokenTestMarkers.insert(closestInstruction) // Add to the spoken set
+//                print("Adding \(closestInstruction) to spoken test set.")
+//            }
+//        }
+//    }
+    //MARK: Check Instruction Proximity
+    func checkInstructionProximity(to currentLocation: CLLocation?, locations: [Location], instructionManager: InstructionManager) {
+        
+        //Ensures it's not non-nil
+        guard let currentLocation = currentLocation else { return }
+        
+        //commonly used in algorithms like finding the smallest distance or value in a dataset
+        var closestDistance = Double.greatestFiniteMagnitude
+        var closestLocationInstruction: String = ""
+        
+        for location in locations {
+            
+            //The target location
+            let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+            
+            //Calculate the distance from current location to target location
+            let distance = currentLocation.distance(from: targetLocation)
+            
+            print("Checking location \(location.instruction) at distance: \(distance) meters")
+            
+            //If the distance is less than the closest distance
+            if distance < closestDistance {
+                //Save it in the variable to note that its the closest one
+                closestDistance = distance
+                //And use it's instruction
+                closestLocationInstruction = location.instruction
+            }
+        }
+        
+        // Update the instruction only when the user approaches a new location (within 20 meters)
+        if closestDistance < 20 && closestLocationInstruction != instructionManager.currentInstruction {
+            instructionManager.updateInstruction(with: closestLocationInstruction)
+            print("User is close enough to the instruction: \(closestLocationInstruction), instruction updated.")
+        }
+    }
+
+    
+    //MARK: Check Test Proximity
+        func checkProximityToTestLocations(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
+            guard let currentLocation = currentLocation else { return }
+            
+            var closestDistance = Double.greatestFiniteMagnitude
+            var closestInstruction = ""
+            
+            // Check test locations
+            for location in tests {
+                let targetLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                let distance = currentLocation.distance(from: targetLocation)
+                if distance < closestDistance {
+                    closestDistance = distance
+                    closestInstruction = location.instruction
+                }
+            }
+            
+            // If the closest test location is within range (e.g., 20 meters) AND is not the same as the current instruction, update the instruction
+            if closestDistance < 20 && closestInstruction != instructionManager.currentInstruction {
+                if !spokenInstructionMarkers.contains(closestInstruction){
+                    instructionManager.updateInstruction(with: closestInstruction)
+                    print("Adding \(closestInstruction) to spoken instruction set.")
+                    
+                }
+            }
+        }
+    
     //MARK: Check Stop and Traffic Light Proximity
     func checkStopProximity(to currentLocation: CLLocation?, instructionManager: InstructionManager) {
         guard let currentLocation = currentLocation else { return }
@@ -173,8 +187,8 @@ class ProximityManager: ObservableObject {
                 print("User is near a stop sign")
                 if !spokenStopSigns.contains(stopSign){
                     print("Adding \(stopSign) to spoken stop sign.")
-                    instructionManager.updateInstruction(with: "Approaching Stop Sign" )
                     spokenStopSigns.insert(stopSign)
+                    instructionManager.updateInstruction(with: "Approaching Stop Sign" )
                 }
                 break
             }
@@ -187,8 +201,8 @@ class ProximityManager: ObservableObject {
                 self.isNearTrafficLight = true
                 print("User is near a traffic light")
                 if !spokenTrafficLights.contains(trafficLight){
-                    instructionManager.updateInstruction(with: "Approaching Traffic Light" )
                     spokenTrafficLights.insert(trafficLight)
+                    instructionManager.updateInstruction(with: "Approaching Traffic Light" )
                     print("Adding \(trafficLight) to spoken traffic light set list.")
                 }
                 break
@@ -221,4 +235,13 @@ class ProximityManager: ObservableObject {
             print("User is within route proximity")
         }
     }
+    
+    func resetSpokenSets() {
+        spokenStopSigns.removeAll()
+        spokenTrafficLights.removeAll()
+        spokenInstructionMarkers.removeAll()
+        spokenTestMarkers.removeAll()
+        print("Spoken sets have been reset.")
+    }
+
 }

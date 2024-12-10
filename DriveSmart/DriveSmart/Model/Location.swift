@@ -1,3 +1,5 @@
+//Created by: Melissa Munoz
+
 import CoreLocation
 
 struct LocationData {

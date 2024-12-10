@@ -1,3 +1,5 @@
+//Created by: Melissa Munoz
+
 import SwiftUI
 
 struct HomePageView: View {
@@ -42,12 +44,13 @@ struct HomePageView: View {
                     
                     
                     NavigationLink(destination: DashboardView()) {
-                        Text("Terms and Conditions")
+                        Text("Instructions")
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.white.opacity(0.8))
                             .foregroundColor(.black)
                             .cornerRadius(10)
+                            .disabled(true)
                     }
                     .padding(.horizontal, 50)
                 }
