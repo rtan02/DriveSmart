@@ -4,7 +4,7 @@ import SwiftUI
 
 struct ResultsView: View {
     var checklistItems: [ChecklistItem]
-    var infractions: [Int] // List of over-speed values
+    @ObservedObject var locationManager: LocationManager
 
     var body: some View {
         ZStack {
@@ -72,26 +72,13 @@ struct ResultsView: View {
                             .font(.headline)
                             .foregroundColor(.black)
                         
-                        // Display infractions
-                        if infractions.isEmpty {
-                            Text("No speeding infractions recorded.")
-                                .font(.body)
-                                .foregroundColor(.black.opacity(0.7))
-                        } else {
-                            ForEach(infractions.indices, id: \.self) { index in
-                                Text("Infraction \(index + 1): Over by \(infractions[index]) km/h")
-                                    .font(.body)
-                                    .foregroundColor(.red)
+                        VStack(alignment: .leading) {
+                            ForEach(generateInfractionSummary(), id: \.self) { summary in
+                                Text("• \(summary)")
+                                    .padding(.bottom, 2)
                             }
                         }
-                        
-                        Text("It took you 30 min to complete this driving test.")
-                            .font(.body)
-                            .foregroundColor(.black.opacity(0.7))
-                        
-                        Text("On (-64, 70), you did not do a complete stop.")
-                            .font(.body)
-                            .foregroundColor(.black.opacity(0.7))
+                        .padding(.bottom, 20)
                     }
                     .padding()
                     .background(Color.white)
@@ -117,5 +104,33 @@ struct ResultsView: View {
         .background(Color("UIBlue").edgesIgnoringSafeArea(.all))
         .toolbarBackground(Color("UIBlack"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+    }
+    
+    private func generateInfractionSummary() -> [String] {
+        let speedingCount = locationManager.infractions.filter { $0.contains("Speeding") }.count
+        let suddenAccelerationCount = locationManager.infractions.filter { $0.contains("Sudden Acceleration") }.count
+        let suddenBrakingCount = locationManager.infractions.filter { $0.contains("Sudden Braking") }.count
+        let excessiveTurnCount = locationManager.infractions.filter { $0.contains("Excessive speed on turn") }.count
+        let failureToStopCount = locationManager.infractions.filter { $0.contains("Failure to stop") }.count
+        
+        var summary: [String] = []
+        
+        if speedingCount > 0 {
+            summary.append("You exceeded the speed limit \(speedingCount) times.")
+        }
+        if suddenAccelerationCount > 0 {
+            summary.append("You accelerated suddenly \(suddenAccelerationCount) times.")
+        }
+        if suddenBrakingCount > 0 {
+            summary.append("You braked suddenly \(suddenBrakingCount) times.")
+        }
+        if excessiveTurnCount > 0 {
+            summary.append("You went too fast on a turn \(excessiveTurnCount) times.")
+        }
+        if failureToStopCount > 0 {
+            summary.append("You failed to stop at waypoints \(failureToStopCount) times.")
+        }
+        
+        return summary.isEmpty ? ["No infractions recorded."] : summary
     }
 }

@@ -1,10 +1,3 @@
-//
-//  SpeedOverlay.swift
-//  DriveSmart
-//
-//  Created by Michael Tan on 2024-12-02.
-//
-
 import SwiftUI
 
 struct SpeedOverlay: View {
@@ -13,7 +6,7 @@ struct SpeedOverlay: View {
     var onInfraction: (Int) -> Void // Callback to handle infractions
 
     var speedInKmh: Int {
-        Int(speed * 3.6) // Convert m/s to km/h
+        Int(speed) // Convert m/s to km/h
     }
     
     var overlayColor: Color {
@@ -39,8 +32,7 @@ struct SpeedOverlay: View {
                 .foregroundColor(.white)
         }
         .padding(20)
-        .background(Circle().fill(Color.blue))
+        .background(Circle().fill(overlayColor)) // Use overlayColor here
         .shadow(radius: 10)
     }
 }
-
